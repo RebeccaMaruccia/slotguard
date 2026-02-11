@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import unipegaso.slotguard.exception.UserAlreadyExistsException;
@@ -26,7 +28,8 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
-
+    @Autowired
+    private  UserDetailsService userDetailsService;
     @Autowired
     public AuthenticationService(
             OperatoreRepository operatoreRepository,
@@ -108,6 +111,9 @@ public class AuthenticationService {
         extraClaims.put("ruolo", operatore.getRuolo());
 
         String accessToken = jwtService.generateToken(extraClaims, operatore);
+
+
+        extraClaims.put("refreshToken", true);
         String refreshToken = jwtService.generateRefreshToken(extraClaims, operatore);
 
         return AuthenticationResponse.builder()
@@ -116,6 +122,39 @@ public class AuthenticationService {
                 .expiresIn(jwtService.getExpirationTime())
                 .type("Bearer")
                 .build();
+    }
+
+
+
+    public AuthenticationResponse refreshToken(String refreshToken) throws Exception  {
+        final String userEmail = jwtService.extractUsername(refreshToken);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
+
+        if (jwtService.isTokenRefreshValid(refreshToken, userDetails)) {
+            Optional<Operatore> operatoreOp = operatoreRepository.findByMatricola(userEmail);
+            if (operatoreOp.isPresent()) {
+                Operatore operatore= operatoreOp.get();
+                Map<String, Object> extraClaims = new HashMap<>();
+                extraClaims.put("matricola", operatore.getMatricola());
+                extraClaims.put("nome", operatore.getNome());
+                extraClaims.put("cognome", operatore.getCognome());
+                extraClaims.put("ruolo", operatore.getRuolo());
+                  jwtService.generateToken(extraClaims, operatore);
+                String newAccessToken = jwtService.generateToken(extraClaims, operatore);
+                extraClaims.put("refreshToken", true);
+                String newRefreshToken = jwtService.generateRefreshToken(extraClaims, operatore);
+                return AuthenticationResponse.builder()
+                        .accessToken(newAccessToken)
+                        .refreshToken(newRefreshToken)
+                        .expiresIn(jwtService.getExpirationTime())
+                        .type("Bearer")
+                        .build();
+            } else {
+                throw new Exception("Utente non trovato");
+            }
+        } else {
+            throw new Exception("Token refresh non valido");
+        }
     }
 }
 

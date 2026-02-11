@@ -193,6 +193,16 @@ public class JwtService {
         }
     }
 
+    public boolean isTokenRefreshValid(String token, UserDetails userDetails) throws Exception {
+        final String username = extractUsername(token);
+        Claims claims = extractAllClaims(token);
+        if(claims.get("refreshToken") != null && claims.get("refreshToken").equals(true)) {
+            return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        }
+        else {
+            throw new Exception("Token refresh non valido per questo endpoint");
+        }
+    }
     @Bean
     public JwtDecoder jwtDecoder() {
         try {

@@ -1,0 +1,9 @@
+{
+  "urls": [
+    {
+      "url": "http://localhost:8080/slotGuard/v3/api-docs",
+      "Baseurl": "http://localhost:8080/",
+      "name": "slotGuard"
+    }
+  ]
+}

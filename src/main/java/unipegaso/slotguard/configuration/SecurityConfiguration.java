@@ -3,11 +3,8 @@ package unipegaso.slotguard.configuration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -20,8 +17,6 @@ import unipegaso.slotguard.component.JwtAuthenticationFilter;
 import java.util.List;
 
 @Configuration
-@EnableWebSecurity
-@EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfiguration {
 
     private final AuthenticationProvider authenticationProvider;
@@ -37,7 +32,6 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    @Profile("auth")
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
@@ -47,8 +41,7 @@ public class SecurityConfiguration {
                             "/swagger-ui/**", "/v3/api-docs/**",
                             "/public/**",
                             "/api/auth/register",
-                            "/api/auth/login",
-                            "/api/auth/check-matricola/**"
+                            "/api/auth/login"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -84,8 +77,7 @@ public class SecurityConfiguration {
                 "/swagger-ui/**",
                 "/v3/api-docs/**",
                 "/api/auth/register",
-                "/api/auth/login",
-                "/api/auth/check-matricola/**"
+                "/api/auth/login"
         );
     }
 }

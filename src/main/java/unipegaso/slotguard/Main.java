@@ -3,9 +3,11 @@ package unipegaso.slotguard;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
 @SpringBootApplication
-@EnableMethodSecurity
+@EnableWebSecurity
+@EnableMethodSecurity(securedEnabled = true)
 public class Main {
 
     public static void main(String[] args) {

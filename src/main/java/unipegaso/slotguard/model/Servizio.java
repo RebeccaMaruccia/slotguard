@@ -26,8 +26,12 @@ public class Servizio {
     @Column(name = "costo_medio", nullable = false)
     private BigDecimal costoMedio;
 
+    @Column(nullable = false)
+    private Boolean deleted;
+
     public Servizio(BigDecimal costoMedio, String descrizione) {
         this.costoMedio = costoMedio;
         this.descrizione = descrizione;
+        this.deleted = false;
     }
 }

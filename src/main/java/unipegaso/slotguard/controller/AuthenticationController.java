@@ -74,6 +74,14 @@ public class AuthenticationController {
         }
     }
 
+    /*Gestione del refresh token, restituisce un nuovo access token se il refresh token è valido*/
+
+    @GetMapping(value = "/refreshToken")
+    public ResponseEntity<AuthenticationResponse> refreshToken(@RequestHeader(name="authorizationrest") String refreshToken) throws Exception {
+        return new ResponseEntity<AuthenticationResponse>(authenticationService.refreshToken(refreshToken), HttpStatus.OK);
+    }
+
+
     /**
      * Recupera i dati dell'operatore autenticato dal token JWT
      *

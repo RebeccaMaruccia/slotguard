@@ -28,7 +28,7 @@ public class PrenotazioneController {
     //Ricerca prenotazioni con i filtri in input
     @PreAuthorize("@AuthorizationStrategy.exclude(authentication, 'ADMIN')")
     @PostMapping(value = "/ricerca")
-    public ResponseEntity<List<PrenotazioneDTORes>> ricercaPrenotazioni(@RequestBody RicercaPrenotazioneDTO req) {
+    public ResponseEntity<List<PrenotazioneDTORes>> ricercaPrenotazioni(@RequestBody RicercaPrenotazioneDTO req) throws Exception {
         List<PrenotazioneDTORes> prenotazioni = prenotazioneService.ricercaPrenotazioni(req);
         return ResponseEntity.ok(prenotazioni);
     }
@@ -36,16 +36,16 @@ public class PrenotazioneController {
     //Get per recuperare una singola prenotazione a partire dal suo id (dettaglio prenotazione)
     @PreAuthorize("@AuthorizationStrategy.exclude(authentication, 'ADMIN')")
     @GetMapping(value = "/get")
-    public ResponseEntity<PrenotazioneDTORes> getPrenotazione(@RequestParam Long id) {
+    public ResponseEntity<PrenotazioneDTORes> getPrenotazione(@RequestParam Long id) throws Exception {
         PrenotazioneDTORes prenotazione = prenotazioneService.getPrenotazione(id);
         return ResponseEntity.ok(prenotazione);
     }
 
     //Create nuova prenotazione
     @PreAuthorize("@AuthorizationStrategy.exclude(authentication, 'ADMIN')")
-    @PostMapping(value = "/nuova-prenotazione")
-    @RequestMapping(value = "/", method = RequestMethod.POST)
-    public ResponseEntity<PrenotazioneDTORes> crea(@RequestBody PrenotazioneDTOReq req, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+    @PostMapping(value = "/new-prenotazione")
+    public ResponseEntity<PrenotazioneDTORes> createPrenotazione
+                        (@RequestBody PrenotazioneDTOReq req, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) throws Exception {
         final String jwt = token.startsWith("Bearer ") ? token.substring(7) : token;
         req.setMatricolaOperatore(jwtService.extractUsername(jwt));
         PrenotazioneDTORes prenotazione = prenotazioneService.creaPrenotazione(req);
@@ -55,8 +55,8 @@ public class PrenotazioneController {
     //Modifica prenotazione a seguito di una richiesta utente oppure per necessita Admin
     @PreAuthorize("@AuthorizationStrategy.exclude(authentication, 'ADMIN')")
     @PostMapping(value = "/update-prenotazione")
-    @RequestMapping(value = "/", method = RequestMethod.POST)
-    public ResponseEntity<PrenotazioneDTORes> modifica(@RequestBody UpdatePrenotazioneDTOReq req, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+    public ResponseEntity<PrenotazioneDTORes> modificaPrenotazione
+                        (@RequestBody UpdatePrenotazioneDTOReq req, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) throws Exception {
         final String jwt = token.startsWith("Bearer ") ? token.substring(7) : token;
         req.setMatricolaOperatore(jwtService.extractUsername(jwt));
         PrenotazioneDTORes prenotazione = prenotazioneService.updatePrenotazione(req);
@@ -69,8 +69,7 @@ public class PrenotazioneController {
      */
     @PreAuthorize("@AuthorizationStrategy.exclude(authentication, 'ADMIN')")
     @PostMapping(value = "/update-stato-prenotazione")
-    @RequestMapping(value = "/", method = RequestMethod.POST)
-    public ResponseEntity<PrenotazioneDTORes> updateStatoPrenotazione(@RequestParam Long idPrenotazione, @RequestParam StatoPrenotazione stato) {
+    public ResponseEntity<PrenotazioneDTORes> updateStatoPrenotazione(@RequestParam Long idPrenotazione, @RequestParam StatoPrenotazione stato) throws Exception {
         PrenotazioneDTORes prenotazione = prenotazioneService.updateStatoPrenotazione(idPrenotazione, stato);
         return ResponseEntity.ok(prenotazione);
     }

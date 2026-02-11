@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "declaration": true,              // 🔧 genera i file .d.ts
+    "emitDeclarationOnly": false,      // 🔧 genera solo .d.ts, non .js
+    "outDir": "dist",                 // 📁 directory dove mettere i .d.ts
+    "rootDir": "src",                 // 📁 cartella sorgente
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "Bundler",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true
+  },
+  "include": ["src"]
+}

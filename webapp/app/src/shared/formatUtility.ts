@@ -1,0 +1,125 @@
+import moment from "moment";
+
+const useFormatUtilityHook = () => {
+
+
+    const formatEuro = (value?: number | string) => {
+        if (!isNaN(Number(value)) && value) {
+            return Intl.NumberFormat('it-IT', {
+                style: 'decimal',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }).format(Number(value));
+        }
+    }
+    const formatNumber = (value: number | string | undefined | null): number => {
+        if (value === undefined || value === null || value === '') {
+            return 0;
+        }
+        let valueFormatted = value.toString().replace(/\./g, '').replace(',', '.');
+        const numberValue = Number(valueFormatted);
+        if (isNaN(numberValue)) {
+            console.warn("Valore non numerico:", value);
+            return 0;
+        }
+
+        return numberValue;
+    };
+
+    const formatPercentage = (value: number | string | undefined | null): string => {
+        if (value === undefined || value === null || value === '') {
+            return '0%';
+        }
+
+        let numberValue: number;
+
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+
+            // Se ha solo virgola -> formato italiano
+            if (/^\d+(,\d+)?$/.test(trimmed)) {
+                numberValue = parseFloat(trimmed.replace(',', '.'));
+            }
+            // Se ha solo punto -> formato inglese
+            else if (/^\d+(\.\d+)?$/.test(trimmed)) {
+                numberValue = parseFloat(trimmed);
+            }
+            // Se ha entrambi -> dobbiamo capire l'ordine
+            else if (trimmed.includes(',') && trimmed.includes('.')) {
+                const lastComma = trimmed.lastIndexOf(',');
+                const lastDot = trimmed.lastIndexOf('.');
+
+                if (lastComma > lastDot) {
+                    // Esempio: "1.000,75" -> formato italiano
+                    const cleaned = trimmed.replace(/\./g, '').replace(',', '.');
+                    numberValue = parseFloat(cleaned);
+                } else {
+                    // Esempio: "1,000.75" -> formato inglese
+                    const cleaned = trimmed.replace(/,/g, '');
+                    numberValue = parseFloat(cleaned);
+                }
+            } else {
+                // Formato sconosciuto
+                console.warn("Formato non riconosciuto:", value);
+                return '0%';
+            }
+        } else {
+            numberValue = value;
+        }
+
+        if (isNaN(numberValue)) {
+            console.warn("Valore non numerico:", value);
+            return '0%';
+        }
+
+        // Formattazione italiana con virgola come separatore decimale
+        const formatted = new Intl.NumberFormat('it-IT', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(numberValue);
+
+        return `${formatted}%`;
+    };
+
+
+
+    function formatDateToYYYYMMDD(input: Date | string | undefined): string {
+        if (!input) return ''; // Invalid date check
+        const date = typeof input === 'string' ? new Date(input) : input;
+        if (isNaN(date.getTime())) return ''; // Invalid date check
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // mesi da 0 a 11
+        const day = String(date.getDate()).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    }
+
+
+    /*function formatToLookUP(lookup: any, label?: boolean) {
+        let result: LookUpOption[] = [];
+        if (lookup) {
+            lookup.map((i: LookUpDto) => {
+                if (i.key) {
+                    result.push({
+                        label: i.value ?? i.key,
+                        id: label ? (i.value ?? i.key) : i.key
+                    })
+                }
+
+            })
+        }
+
+        return result;
+    }*/
+
+    const getEffectiveDate = () => {
+        let d = moment();
+        let incMonth = d.date() >= 25 ? 2 : 1;
+        let result = d.add(incMonth, 'months').startOf('month');
+        return formatDateToYYYYMMDD(result.toDate());
+    };
+
+    return {formatEuro, formatDateToYYYYMMDD, getEffectiveDate, formatNumber,formatPercentage};
+}
+export {useFormatUtilityHook}

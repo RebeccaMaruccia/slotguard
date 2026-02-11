@@ -24,7 +24,7 @@ public class PrenotazioneDTORes {
     private Operatore operatore;
     private Servizio servizio;
 
-    public static PrenotazioneDTORes from(Prenotazione p) {
+    public static PrenotazioneDTORes toDTO(Prenotazione p) {
         PrenotazioneDTORes dto = new PrenotazioneDTORes();
         dto.setServizio(p.getServizio());
         dto.setOperatore(p.getOperatore());

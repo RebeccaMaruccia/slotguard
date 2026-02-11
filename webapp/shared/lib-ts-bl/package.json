@@ -1,0 +1,23 @@
+{
+  "name": "lib-ts-bl",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Redux Package",
+  "author": "Mattia Caliandro",
+  "license": "MIT",
+  "main": "dist/shared/lib-ts-bl/index.js",
+  "typings": "dist/shared/lib-ts-bl/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "4.9.5",
+    "api-service": "../../api/api-library"
+  },
+  "peerDependencies": {
+    "react-redux": "^9.2.0",
+    "@reduxjs/toolkit": "^2.9.0",
+    "react": "^17.0.0 || ^18.0.0 || ^19.0.0"
+  }
+}

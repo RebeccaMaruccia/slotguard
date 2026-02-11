@@ -23,30 +23,24 @@ import java.util.List;
 public class PrenotazioneService {
 
     @Autowired
-    private final PrenotazioneRepository prenotazioneRepository;
+    private PrenotazioneRepository prenotazioneRepository;
 
     @Autowired
-    private final UtenteRepository utenteRepository;
+    private UtenteRepository utenteRepository;
 
     @Autowired
-    private final OperatoreRepository operatoreRepository;
-
-    public PrenotazioneService(PrenotazioneRepository prenotazioneRepository, UtenteRepository utenteRepository, OperatoreRepository operatoreRepository) {
-        this.prenotazioneRepository = prenotazioneRepository;
-        this.utenteRepository = utenteRepository;
-        this.operatoreRepository = operatoreRepository;
-    }
+    private OperatoreRepository operatoreRepository;
 
     @Transactional(readOnly = true)
-    public List<PrenotazioneDTORes> ricercaPrenotazioni(RicercaPrenotazioneDTO req){
+    public List<PrenotazioneDTORes> ricercaPrenotazioni(RicercaPrenotazioneDTO req) throws Exception {
         return prenotazioneRepository.ricercaPrenotazioni(req)
                 .stream()
-                .map(PrenotazioneDTORes::from)
+                .map(PrenotazioneDTORes::toDTO)
                 .toList();
     }
 
     @Transactional
-    public PrenotazioneDTORes creaPrenotazione(PrenotazioneDTOReq req){
+    public PrenotazioneDTORes creaPrenotazione(PrenotazioneDTOReq req) throws Exception {
         Utente utente = utenteRepository
                 .getUtenteByCodiceFiscale(req.getCfUtente())
                 .orElseThrow(() -> new EntityNotFoundException(
@@ -60,20 +54,20 @@ public class PrenotazioneService {
         Prenotazione prenotazione = new Prenotazione(req.getDataAppuntamento(), null,
                 req.getSemaforoUrgenza(), utente, operatore, req.getServizio(), null);
         prenotazioneRepository.save(prenotazione);
-        return PrenotazioneDTORes.from(prenotazione);
+        return PrenotazioneDTORes.toDTO(prenotazione);
     }
 
     @Transactional(readOnly = true)
-    public PrenotazioneDTORes getPrenotazione(Long id){
+    public PrenotazioneDTORes getPrenotazione(Long id) throws Exception {
         Prenotazione prenotazione =  prenotazioneRepository.findBy(id)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Prenotazione non trovata"
                 ));
-        return PrenotazioneDTORes.from(prenotazione);
+        return PrenotazioneDTORes.toDTO(prenotazione);
     }
 
     @Transactional
-    public PrenotazioneDTORes updatePrenotazione(UpdatePrenotazioneDTOReq req){
+    public PrenotazioneDTORes updatePrenotazione(UpdatePrenotazioneDTOReq req) throws Exception {
 
         Prenotazione prenotazione =  prenotazioneRepository.findBy(req.getPrenotazioneId())
                 .orElseThrow(() -> new EntityNotFoundException(
@@ -96,17 +90,17 @@ public class PrenotazioneService {
         prenotazione.setDataUpdate(LocalDateTime.now());
 
         prenotazioneRepository.save(prenotazione);
-        return PrenotazioneDTORes.from(prenotazione);
+        return PrenotazioneDTORes.toDTO(prenotazione);
     }
 
     @Transactional(readOnly = true)
-    public PrenotazioneDTORes updateStatoPrenotazione(Long id, StatoPrenotazione stato){
+    public PrenotazioneDTORes updateStatoPrenotazione(Long id, StatoPrenotazione stato) throws Exception {
         Prenotazione prenotazione =  prenotazioneRepository.findBy(id)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Prenotazione non trovata"
                 ));
         prenotazione.setStatoPrenotazione(stato);
-        return PrenotazioneDTORes.from(prenotazione);
+        return PrenotazioneDTORes.toDTO(prenotazione);
     }
 
 }

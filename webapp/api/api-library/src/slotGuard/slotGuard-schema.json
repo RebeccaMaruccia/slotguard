@@ -1,0 +1,431 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Claims Service",
+    "description": "Claims Information",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/slotGuard",
+      "description": "Generated server url"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/slotGuard/api/auth/register": {
+      "post": {
+        "tags": [
+          "authentication-controller"
+        ],
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/auth/login": {
+      "post": {
+        "tags": [
+          "authentication-controller"
+        ],
+        "operationId": "authenticate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthenticationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/prenotazione/": {
+      "get": {
+        "tags": [
+          "prenotazione-controller"
+        ],
+        "operationId": "crea",
+        "parameters": [
+          {
+            "name": "req",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/PrenotazioneDTOReq"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrenotazioneDTORes"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/auth/refreshToken": {
+      "get": {
+        "tags": [
+          "authentication-controller"
+        ],
+        "operationId": "refreshToken",
+        "parameters": [
+          {
+            "name": "authorizationrest",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/auth/check-matricola/{matricola}": {
+      "get": {
+        "tags": [
+          "authentication-controller"
+        ],
+        "operationId": "checkMatricola",
+        "parameters": [
+          {
+            "name": "matricola",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RegisterRequest": {
+        "required": [
+          "cognome",
+          "matricola",
+          "nome",
+          "password",
+          "passwordConfirm"
+        ],
+        "type": "object",
+        "properties": {
+          "matricola": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "cognome": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "passwordConfirm": {
+            "type": "string"
+          }
+        }
+      },
+      "RegisterResponse": {
+        "type": "object",
+        "properties": {
+          "matricola": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "cognome": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "AuthenticationRequest": {
+        "required": [
+          "matricola",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "matricola": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "AuthenticationResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      },
+      "PrenotazioneDTOReq": {
+        "type": "object",
+        "properties": {
+          "dataAppuntamento": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "statoPrenotazione": {
+            "type": "string",
+            "enum": [
+              "BOOKED",
+              "CONFIRMED",
+              "CANCELLED_AUTO",
+              "CANCELLED_USER",
+              "COMPLETED",
+              "NO_SHOW"
+            ]
+          },
+          "semaforoUrgenza": {
+            "type": "string",
+            "enum": [
+              "VERDE",
+              "GIALLO",
+              "ROSSO"
+            ]
+          },
+          "cfUtente": {
+            "type": "string"
+          },
+          "matricolaOperatore": {
+            "type": "string"
+          },
+          "servizio": {
+            "$ref": "#/components/schemas/Servizio"
+          }
+        }
+      },
+      "Servizio": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "descrizione": {
+            "type": "string"
+          },
+          "costoMedio": {
+            "type": "number"
+          }
+        }
+      },
+      "GrantedAuthority": {
+        "type": "object",
+        "properties": {
+          "authority": {
+            "type": "string"
+          }
+        }
+      },
+      "Operatore": {
+        "type": "object",
+        "properties": {
+          "matricola": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "cognome": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "ruolo": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "OPERATORE"
+            ]
+          },
+          "authorities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GrantedAuthority"
+            }
+          },
+          "username": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "accountNonExpired": {
+            "type": "boolean"
+          },
+          "credentialsNonExpired": {
+            "type": "boolean"
+          },
+          "accountNonLocked": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PrenotazioneDTORes": {
+        "type": "object",
+        "properties": {
+          "dataAppuntamento": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "statoPrenotazione": {
+            "type": "string",
+            "enum": [
+              "BOOKED",
+              "CONFIRMED",
+              "CANCELLED_AUTO",
+              "CANCELLED_USER",
+              "COMPLETED",
+              "NO_SHOW"
+            ]
+          },
+          "semaforoUrgenza": {
+            "type": "string",
+            "enum": [
+              "VERDE",
+              "GIALLO",
+              "ROSSO"
+            ]
+          },
+          "utente": {
+            "$ref": "#/components/schemas/Utente"
+          },
+          "operatore": {
+            "$ref": "#/components/schemas/Operatore"
+          },
+          "servizio": {
+            "$ref": "#/components/schemas/Servizio"
+          }
+        }
+      },
+      "Utente": {
+        "type": "object",
+        "properties": {
+          "codiceFiscale": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "cognome": {
+            "type": "string"
+          },
+          "numeroTelefono": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "description": "JWT authentication",
+        "in": "header",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
