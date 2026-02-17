@@ -28,10 +28,7 @@ public class ServizioService {
 
     @Transactional(readOnly = true)
     public ServizioDTO getServizio(Long id) throws Exception {
-        Servizio servizio = servizioRepository.findServizioByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                "Servizio non trovato"
-        ));
+        Servizio servizio = getServizioById(id);
         return ServizioDTO.toDTO(servizio);
     }
 
@@ -61,14 +58,18 @@ public class ServizioService {
 
     @Transactional
     public ServizioDTO updateServizio(ServizioDTO req) throws Exception {
-        Servizio servizio = servizioRepository.findServizioByIdAndDeletedFalse(req.getId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Servizio non trovato"
-                ));
+        Servizio servizio = getServizioById(req.getId());
 
         if(req.getDescrizione() != null) servizio.setDescrizione(req.getDescrizione());
         if(req.getCostoMedio() != null) servizio.setCostoMedio(req.getCostoMedio());
 
         return ServizioDTO.toDTO(servizioRepository.save(servizio));
+    }
+
+    private Servizio getServizioById(Long id){
+        return servizioRepository.findServizioByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Servizio non trovato"
+                ));
     }
 }

@@ -1,16 +1,49 @@
 package unipegaso.slotguard.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import unipegaso.slotguard.model.dto.UtenteDTO;
 import unipegaso.slotguard.service.UtenteService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/utente")
 public class UtenteController {
 
+    @Autowired
     private UtenteService utenteService;
 
-    public UtenteController(UtenteService utenteService) {
-        this.utenteService = utenteService;
+    //Ricerca utenti con i filtri in input
+    @PreAuthorize("@AuthorizationStrategy.exclude(authentication, 'ADMIN')")
+    @PostMapping(value = "/ricerca")
+    public ResponseEntity<List<UtenteDTO>> ricercaUtenti(@RequestBody UtenteDTO req) throws Exception {
+        List<UtenteDTO> utenti = utenteService.ricercaUtente(req);
+        return ResponseEntity.ok(utenti);
     }
+
+    //Get per recuperare una singolo uente a partire dal suo codice fiscale (dettaglio utente)
+    @PreAuthorize("@AuthorizationStrategy.exclude(authentication, 'ADMIN')")
+    @GetMapping(value = "/get")
+    public ResponseEntity<UtenteDTO> getUtente(@RequestParam String cf) throws Exception {
+        UtenteDTO utenteDTO = utenteService.ricercaUtenteFromCF(cf);
+        return ResponseEntity.ok(utenteDTO);
+    }
+
+    @PreAuthorize("@AuthorizationStrategy.exclude(authentication, 'ADMIN')")
+    @PostMapping(value = "/new-utente")
+    public ResponseEntity<UtenteDTO> createUtente(@RequestBody UtenteDTO req) throws Exception {
+        UtenteDTO servizio = utenteService.creaUtente(req);
+        return ResponseEntity.ok(servizio);
+    }
+
+    @PreAuthorize("@AuthorizationStrategy.exclude(authentication, 'ADMIN')")
+    @PostMapping(value = "/update-utente")
+    public ResponseEntity<UtenteDTO> updateUtente(@RequestBody UtenteDTO req) throws Exception {
+        UtenteDTO servizio = utenteService.updateUtente(req);
+        return ResponseEntity.ok(servizio);
+    }
+
 }

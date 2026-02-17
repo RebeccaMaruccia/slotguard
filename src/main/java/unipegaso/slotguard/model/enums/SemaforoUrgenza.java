@@ -1,5 +1,7 @@
 package unipegaso.slotguard.model.enums;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public enum SemaforoUrgenza {
     VERDE("Semaforo Verde (bassa urgenza)"),
     GIALLO("Semaforo Giallo (media urgenza)"),
@@ -12,5 +14,10 @@ public enum SemaforoUrgenza {
 
     public String getDescrizione() {
         return descrizione;
+    }
+
+    @JsonCreator
+    public static SemaforoUrgenza from(String value) {
+        return value == null ? null : SemaforoUrgenza.valueOf(value.toUpperCase());
     }
 }

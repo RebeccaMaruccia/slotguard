@@ -1,5 +1,5 @@
 import {
-    api
+  api
 } from "C:\\Users\\matti\\Desktop\\WorkSpaces\\slotguard-be\\webapp\\api\\api-library\\src\\slotGuard\\slotGuardbaseQuery";
 
 const injectedRtkApi = api.injectEndpoints({

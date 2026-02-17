@@ -3,7 +3,6 @@ package unipegaso.slotguard.model.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import unipegaso.slotguard.model.Servizio;
 import unipegaso.slotguard.model.enums.SemaforoUrgenza;
 import unipegaso.slotguard.model.enums.StatoPrenotazione;
 
@@ -19,5 +18,5 @@ public class PrenotazioneDTOReq {
     private SemaforoUrgenza semaforoUrgenza;
     private String cfUtente;
     private String matricolaOperatore;
-    private Servizio servizio;
+    private long idServizio;
 }

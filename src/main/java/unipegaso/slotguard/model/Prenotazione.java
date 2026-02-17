@@ -54,7 +54,11 @@ public class Prenotazione {
     @JoinColumn(name = "id_servizio", nullable = false)
     private Servizio servizio;
 
-    public Prenotazione(LocalDateTime dataAppuntamento, LocalDateTime dataUpdate, SemaforoUrgenza semaforoUrgenza, Utente utente, Operatore operatore, Servizio servizio, Operatore operatoreUpdate) {
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "slot_id", nullable = false)
+    private SlotAppuntamento slot;
+
+    public Prenotazione(LocalDateTime dataAppuntamento, LocalDateTime dataUpdate, SemaforoUrgenza semaforoUrgenza, Utente utente, Operatore operatore, Servizio servizio, Operatore operatoreUpdate, SlotAppuntamento slot) {
         this.dataAppuntamento = dataAppuntamento;
         this.statoPrenotazione = StatoPrenotazione.BOOKED;
         this.semaforoUrgenza = semaforoUrgenza;
@@ -64,5 +68,6 @@ public class Prenotazione {
         this.dataInserimento = LocalDateTime.now();
         this.dataUpdate = LocalDateTime.now();
         this.operatoreUpdate = operatoreUpdate;
+        this.slot = slot;
     }
 }
