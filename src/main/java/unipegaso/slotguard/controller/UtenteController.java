@@ -17,7 +17,7 @@ public class UtenteController {
     private UtenteService utenteService;
 
     //Ricerca utenti con i filtri in input
-    @PreAuthorize("@AuthorizationStrategy.exclude(authentication, 'ADMIN')")
+    @PreAuthorize("hasRole( 'ADMIN')")
     @PostMapping(value = "/ricerca")
     public ResponseEntity<List<UtenteDTO>> ricercaUtenti(@RequestBody UtenteDTO req) throws Exception {
         List<UtenteDTO> utenti = utenteService.ricercaUtente(req);
@@ -25,21 +25,21 @@ public class UtenteController {
     }
 
     //Get per recuperare una singolo uente a partire dal suo codice fiscale (dettaglio utente)
-    @PreAuthorize("@AuthorizationStrategy.exclude(authentication, 'ADMIN')")
+    @PreAuthorize("hasRole( 'ADMIN')")
     @GetMapping(value = "/get")
     public ResponseEntity<UtenteDTO> getUtente(@RequestParam String cf) throws Exception {
         UtenteDTO utenteDTO = utenteService.ricercaUtenteFromCF(cf);
         return ResponseEntity.ok(utenteDTO);
     }
 
-    @PreAuthorize("@AuthorizationStrategy.exclude(authentication, 'ADMIN')")
+    @PreAuthorize("hasRole( 'ADMIN')")
     @PostMapping(value = "/new-utente")
     public ResponseEntity<UtenteDTO> createUtente(@RequestBody UtenteDTO req) throws Exception {
         UtenteDTO servizio = utenteService.creaUtente(req);
         return ResponseEntity.ok(servizio);
     }
 
-    @PreAuthorize("@AuthorizationStrategy.exclude(authentication, 'ADMIN')")
+    @PreAuthorize("hasRole( 'ADMIN')")
     @PostMapping(value = "/update-utente")
     public ResponseEntity<UtenteDTO> updateUtente(@RequestBody UtenteDTO req) throws Exception {
         UtenteDTO servizio = utenteService.updateUtente(req);

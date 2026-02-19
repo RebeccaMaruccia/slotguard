@@ -20,24 +20,14 @@ public enum StatoPrenotazione {
         return value == null ? null : StatoPrenotazione.valueOf(value.toUpperCase());
     }
 
-    private static final Map<StatoPrenotazione, Set<StatoPrenotazione>> TRANSIZIONI_AMMESSE =
-            Map.of(
-                    StatoPrenotazione.BOOKED, Set.of(
-                            StatoPrenotazione.CONFIRMED,
-                            StatoPrenotazione.CANCELLED_USER,
-                            StatoPrenotazione.CANCELLED_AUTO
-                    ),
-                    StatoPrenotazione.CONFIRMED, Set.of(
-                            StatoPrenotazione.COMPLETED,
-                            StatoPrenotazione.NO_SHOW,
-                            StatoPrenotazione.CANCELLED_USER,
-                            StatoPrenotazione.CANCELLED_AUTO
-                    ),
-                    StatoPrenotazione.CANCELLED_AUTO, Set.of(),
-                    StatoPrenotazione.CANCELLED_USER, Set.of(),
-                    StatoPrenotazione.COMPLETED, Set.of(),
-                    StatoPrenotazione.NO_SHOW, Set.of()
-            );
+    private static final Map<StatoPrenotazione, Set<StatoPrenotazione>> TRANSIZIONI_AMMESSE = Map.of(
+            BOOKED, Set.of(CONFIRMED, CANCELLED_USER, CANCELLED_AUTO),
+            CONFIRMED, Set.of(COMPLETED, NO_SHOW, CANCELLED_USER, CANCELLED_AUTO),
+            CANCELLED_AUTO, Set.of(),
+            CANCELLED_USER, Set.of(),
+            COMPLETED, Set.of(),
+            NO_SHOW, Set.of()
+    );
 
     public boolean canChangeTo(StatoPrenotazione nuovo) {
         if (nuovo == null || this == nuovo) return true;

@@ -19,7 +19,7 @@ public class SlotAppuntamento {
     private Long id;
 
     @Column(nullable = false)
-    private LocalDateTime inizio;   // es: 2026-02-11T09:00
+    private LocalDateTime inizio;   // es: 11-02-2026 09:00
 
     @Column(nullable = false)
     private int capacita = 3;

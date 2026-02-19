@@ -20,8 +20,15 @@ public class TentativoRiallocazione {
     @Column(nullable = false)
     private Long id;
 
-    @Column(name = "slot_libero", nullable = false)
-    private LocalDateTime slotLibero;
+    @Column(name = "ts_creazione", nullable = false)
+    private LocalDateTime tsCreazione;
+
+    @Column
+    private Boolean esito; //TRUE se la riallocazione è andata a buon fine, FALSE se no
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "id_slot", nullable = false)
+    private SlotAppuntamento slotLibero;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_servizio", nullable = false)
@@ -29,21 +36,28 @@ public class TentativoRiallocazione {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_prenotazione", nullable = false)
-    private Prenotazione prenotazione; //l'id della prenotazione che cerco di anticipare
+    private Prenotazione prenotazione; //l'id della prenotazione che è stata cancellata
 
     @OneToOne(optional = false)
-    @JoinColumn(name = "id_notifica", nullable = false)
-    private Notifica notifica;
+    @JoinColumn(name = "id_notifica")
+    private Notifica notifica; //con prenotazione che cerco di anticipare
 
-    @Column(name = "ts_creazione", nullable = false)
-    private LocalDateTime tsCreazione;
-
-    public TentativoRiallocazione(LocalDateTime tsCreazione, Notifica notifica, Prenotazione prenotazione, Servizio servizio, LocalDateTime slotLibero, Long id) {
+    public TentativoRiallocazione(LocalDateTime tsCreazione, Notifica notifica, Prenotazione prenotazione, Servizio servizio, SlotAppuntamento slotLibero) {
         this.tsCreazione = tsCreazione;
         this.notifica = notifica;
+        this.esito = null;
         this.prenotazione = prenotazione;
         this.servizio = servizio;
         this.slotLibero = slotLibero;
-        this.id = id;
+    }
+
+    public TentativoRiallocazione(Notifica notifica, Prenotazione pCancellata){
+        this.tsCreazione = LocalDateTime.now();
+        this.notifica = notifica;
+        this.prenotazione = pCancellata;
+        this.servizio = pCancellata.getServizio();
+        this.slotLibero = pCancellata.getSlot();
+        this.esito = null;
+
     }
 }

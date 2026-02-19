@@ -12,6 +12,6 @@ import java.util.Optional;
 public interface ServizioRepository extends CrudRepository<Servizio, Long> {
     //Passo fisso deleted = false per cancellazione logica. Recuperare tutti i servizi senza filtro servirà soltanto per lo storico
     Optional<Servizio> findServizioByIdAndDeletedFalse(Long id);
-    List<Servizio> getAll();
+    List<Servizio> findAll();
     Optional<Servizio> findByCostoMedioAndDescrizione(BigDecimal costoMedio, String descrizione);
 }

@@ -87,7 +87,7 @@ public class PrenotazioneService {
 
     @Transactional(readOnly = true)
     public PrenotazioneDTORes getPrenotazione(Long id) throws Exception {
-        Prenotazione prenotazione =  prenotazioneRepository.findBy(id)
+        Prenotazione prenotazione =  prenotazioneRepository.findPrenotazioneById(id)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Prenotazione non trovata"
                 ));
@@ -95,7 +95,7 @@ public class PrenotazioneService {
     }
 
     @Transactional
-    public PrenotazioneDTORes updatePrenotazione(UpdatePrenotazioneDTOReq req) {
+    public PrenotazioneDTORes updatePrenotazione(UpdatePrenotazioneDTOReq req) throws Exception {
 
         Prenotazione prenotazione = prenotazioneRepository.findById(req.getPrenotazioneId())
                 .orElseThrow(() -> new EntityNotFoundException("Prenotazione non trovata"));
@@ -113,17 +113,8 @@ public class PrenotazioneService {
                 .orElseThrow(() -> new EntityNotFoundException("Slot attuale non trovato"));
 
         StatoPrenotazione oldState = prenotazione.getStatoPrenotazione();
-        StatoPrenotazione newState = (req.getStatoPrenotazione() != null)
-                ? req.getStatoPrenotazione()
-                : oldState;
-
-        // controllo transizione (FSM)
-        if (req.getStatoPrenotazione() != null && !oldState.canChangeTo(newState)) {
-            throw new IllegalStateException("Transizione non consentita: " + oldState + " -> " + newState);
-        }
 
         boolean oldOccupato = StatoPrenotazione.isSlotOccupato(oldState);
-        boolean newOccupato = StatoPrenotazione.isSlotOccupato(newState);
 
         // 1) cambio data -> spostamento slot (solo se occupa)
         if (req.getDataAppuntamento() != null) {
@@ -144,8 +135,7 @@ public class PrenotazioneService {
                     }
 
                     // libera vecchio slot
-                    int oldPrenotati = currentSlot.getPrenotati();
-                    currentSlot.setPrenotati(Math.max(0, oldPrenotati - 1));
+                    currentSlot.setPrenotati(currentSlot.getPrenotati() - 1);
 
                     // occupa nuovo slot
                     newSlot.setPrenotati(newSlot.getPrenotati() + 1);
@@ -153,21 +143,14 @@ public class PrenotazioneService {
 
                 prenotazione.setSlot(newSlot);
                 prenotazione.setDataAppuntamento(nuovaData);
+                slotRepository.save(currentSlot);
                 currentSlot = newSlot; // aggiorna riferimento (serve per il punto 2)
             }
         }
 
-        /* 2) cambio stato -> libera posto se passi da occupante a non-occupante (CANCELLATO/COMPLETATO/NO_SHOW) */
-        if (req.getStatoPrenotazione() != null && newState != oldState) {
-
-            if (oldOccupato && !newOccupato) {
-                int prenotati = currentSlot.getPrenotati();
-                currentSlot.setPrenotati(Math.max(0, prenotati - 1));
-            }
-
-            // non esiste transizione da non-occupato a occupato, quindi non serve fare ++ qui.
-
-            prenotazione.setStatoPrenotazione(newState);
+        // 2) cambio stato -> libera posto se passi da occupante a non-occupante (CANCELLATO/COMPLETATO/NO_SHOW)
+        if (req.getStatoPrenotazione() != null && req.getStatoPrenotazione() != oldState) {
+            applyCambioStato(prenotazione, req.getStatoPrenotazione(), currentSlot);
         }
 
         // 3) altri campi
@@ -185,14 +168,37 @@ public class PrenotazioneService {
         return PrenotazioneDTORes.toDTO(prenotazione);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public PrenotazioneDTORes updateStatoPrenotazione(Long id, StatoPrenotazione stato) throws Exception {
-        Prenotazione prenotazione =  prenotazioneRepository.findBy(id)
+        Prenotazione prenotazione =  prenotazioneRepository.findPrenotazioneById(id)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Prenotazione non trovata"
                 ));
-        prenotazione.setStatoPrenotazione(stato);
+
+        SlotAppuntamento slot = slotRepository.findByIdForUpdate(prenotazione.getSlot().getId())
+                .orElseThrow(() -> new EntityNotFoundException("Slot attuale non trovato"));
+
+        applyCambioStato(prenotazione, stato, slot);
+        prenotazioneRepository.save(prenotazione);
         return PrenotazioneDTORes.toDTO(prenotazione);
+    }
+
+    private void applyCambioStato(Prenotazione prenotazione, StatoPrenotazione nuovoStato, SlotAppuntamento slotCorrente) {
+        StatoPrenotazione statoCorrente = prenotazione.getStatoPrenotazione();
+
+        if (!statoCorrente.canChangeTo(nuovoStato)) {
+            throw new IllegalStateException("Transizione non consentita: " + statoCorrente + " -> " + nuovoStato);
+        }
+
+        boolean oldOccupato = StatoPrenotazione.isSlotOccupato(statoCorrente);
+        boolean newOccupato = StatoPrenotazione.isSlotOccupato(nuovoStato);
+
+        if (oldOccupato && !newOccupato) {
+            int prenotati = slotCorrente.getPrenotati();
+            slotCorrente.setPrenotati(Math.max(0, prenotati - 1));
+        }
+
+        prenotazione.setStatoPrenotazione(nuovoStato);
     }
 }
 

@@ -20,7 +20,7 @@ public class ServizioService {
 
     @Transactional(readOnly = true)
     public List<ServizioDTO> getServizi() throws Exception {
-        return servizioRepository.getAll()
+        return servizioRepository.findAll()
                 .stream()
                 .map(ServizioDTO::toDTO)
                 .toList();

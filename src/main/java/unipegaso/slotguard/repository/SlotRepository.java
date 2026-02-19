@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import unipegaso.slotguard.model.SlotAppuntamento;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -22,7 +23,7 @@ public interface SlotRepository extends CrudRepository<SlotAppuntamento, Long> {
 
     Boolean existsByInizio(LocalDateTime inizio);
 
-    List<SlotAppuntamento> findByInizioBetweenOrderByInizioAsc(LocalDateTime from, LocalDateTime to);
+    List<SlotAppuntamento> findByInizioBetweenOrderByInizioAsc(LocalDate from, LocalDate to);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM SlotAppuntamento s WHERE s.id = :id")
