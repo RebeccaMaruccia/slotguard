@@ -15,6 +15,9 @@ import MenuItem from "@mui/material/MenuItem";
 import Logo from "../../../assets/logos/img.png";
 import useHeaderHook from "./hooks/header.hook";
 import Loader from "../Loader/loader.component";
+import {EnumRoutes} from "lib-ts-bl/dist";
+import useNavigationHook from "../../../shared/navigation";
+import {Grid, Stack} from "@mui/material";
 
 interface IProps {}
 
@@ -23,7 +26,7 @@ interface ISettings {
   action: () => void;
 }
 
-const pages = ["Products", "Pricing", "Blog"];
+const pages = [EnumRoutes.DASHBOARD, EnumRoutes.APPOINTMENTS, EnumRoutes.USERS];
 
 const Header: React.FC<React.PropsWithChildren<IProps>> = (
   props: React.PropsWithChildren<IProps>,
@@ -47,7 +50,7 @@ const Header: React.FC<React.PropsWithChildren<IProps>> = (
       action: () => logOut(),
     },
   ];
-
+const {redirectToPage} = useNavigationHook();
   return (
     <Loader isActive={isLoading}>
       <AppBar position="static">
@@ -56,6 +59,9 @@ const Header: React.FC<React.PropsWithChildren<IProps>> = (
             disableGutters
             sx={{ display: "flex", justifyContent: "center", gap: 2 }}
           >
+            <Grid container direction={"column"} spacing={2}>
+            <Grid direction={"row"} alignItems={"center"} justifyContent={"center"} paddingTop={2}>
+              <Stack direction={"row"} spacing={2} alignItems={"center"} justifyContent={"center"} >
             <Avatar src={Logo} />
             <Box sx={{ display: { xs: "flex", md: "none" } }}>
               <IconButton
@@ -107,16 +113,19 @@ const Header: React.FC<React.PropsWithChildren<IProps>> = (
             >
               Slot Guard
             </Typography>
+              </Stack>
+            </Grid>
             {isLogged /*&& userInfoResponse*/ && (
-              <>
+              <Grid alignItems={"center"}>
+                <Stack direction="row" spacing={2} alignItems={"center"} justifyContent={"center"}>
                 <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1 }}>
                   {pages.map((page) => (
                     <Button
                       key={page}
-                      onClick={handleCloseNavMenu}
+                      onClick={() => redirectToPage(page)}
                       sx={{ my: 2, color: "white", display: "block" }}
                     >
-                      {page}
+                      {page.replace("/", "")}
                     </Button>
                   ))}
                 </Box>
@@ -155,8 +164,10 @@ const Header: React.FC<React.PropsWithChildren<IProps>> = (
                     ))}
                   </Menu>
                 </Box>
-              </>
+                </Stack>
+              </Grid>
             )}
+            </Grid>
           </Toolbar>
         </Container>
       </AppBar>

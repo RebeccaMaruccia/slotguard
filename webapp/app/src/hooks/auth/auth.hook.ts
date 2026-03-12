@@ -1,4 +1,4 @@
-import {AuthenticationRequest, RefreshTokenApiArg, slotGuardServiceApi} from "api-service";
+import {AuthenticationRequest, RefreshTokenApiArg, slotGuardServiceApiBase} from "api-service";
 import {loginReset, loginSet, SessionStorageType, userLogged,} from "lib-ts-bl/dist/reducers/auth";
 import {useAppDispatch, useAppSelector} from "../../store/hook";
 import useNavigationHook from "../../shared/navigation";
@@ -9,7 +9,7 @@ const useAuthHook = () => {
   const dispatch = useAppDispatch();
   const isLogged: boolean = useAppSelector(userLogged) ?? false;
   const [setLogin, { isLoading: loginLoading }] =
-    slotGuardServiceApi.useAuthenticateMutation();
+    slotGuardServiceApiBase.useAuthenticateMutation();
   const { redirectToPage } = useNavigationHook();
 
   const login = async (loginDto: AuthenticationRequest) => {
@@ -42,7 +42,7 @@ const useAuthHook = () => {
         isLoading: refreshTokenLoading,
         isError: refreshTokenError,
         reset: refreshTokenReset
-    }] = slotGuardServiceApi.useLazyRefreshTokenQuery();
+    }] = slotGuardServiceApiBase.useLazyRefreshTokenQuery();
 
   const refreshTokenGetPrivate = (refreshToken: string) => {
     console.log("refreshTokenGetPrivate  " + refreshToken);

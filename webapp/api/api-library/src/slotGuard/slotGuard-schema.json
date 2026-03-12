@@ -17,6 +17,491 @@
     }
   ],
   "paths": {
+    "/slotGuard/public/notifica/rispondi": {
+      "get": {
+        "tags": [
+          "notifica-controller"
+        ],
+        "operationId": "rispondiDaLink",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "accetta",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "notifica-controller"
+        ],
+        "operationId": "rispondi",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "accetta",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/utente/update-utente": {
+      "post": {
+        "tags": [
+          "utente-controller"
+        ],
+        "operationId": "updateUtente",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UtenteDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UtenteDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/utente/ricerca": {
+      "post": {
+        "tags": [
+          "utente-controller"
+        ],
+        "operationId": "ricercaUtenti",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UtenteDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UtenteDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/utente/new-utente": {
+      "post": {
+        "tags": [
+          "utente-controller"
+        ],
+        "operationId": "createUtente",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UtenteDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UtenteDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/slot/get-slots": {
+      "post": {
+        "tags": [
+          "slot-controller"
+        ],
+        "operationId": "getSlots",
+        "parameters": [
+          {
+            "name": "inizio",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "fine",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SlotDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/slot/genera-slots": {
+      "post": {
+        "tags": [
+          "slot-controller"
+        ],
+        "operationId": "generaSlots",
+        "parameters": [
+          {
+            "name": "settimane",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/slotGuard/api/servizi/update-servizio": {
+      "post": {
+        "tags": [
+          "servizio-controller"
+        ],
+        "operationId": "updateServizio",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServizioDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServizioDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/servizi/new-servizio": {
+      "post": {
+        "tags": [
+          "servizio-controller"
+        ],
+        "operationId": "createServizio",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServizioDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServizioDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/servizi/delete-servizio": {
+      "post": {
+        "tags": [
+          "servizio-controller"
+        ],
+        "operationId": "deleteServizio",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServizioDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/prenotazione/update-stato-prenotazione": {
+      "post": {
+        "tags": [
+          "prenotazione-controller"
+        ],
+        "operationId": "updateStatoPrenotazione",
+        "parameters": [
+          {
+            "name": "idPrenotazione",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "stato",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BOOKED",
+                "CONFIRMED",
+                "CANCELLED_AUTO",
+                "CANCELLED_USER",
+                "COMPLETED",
+                "NO_SHOW"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrenotazioneDTORes"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/prenotazione/update-prenotazione": {
+      "post": {
+        "tags": [
+          "prenotazione-controller"
+        ],
+        "operationId": "modificaPrenotazione",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePrenotazioneDTOReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrenotazioneDTORes"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/prenotazione/ricerca": {
+      "post": {
+        "tags": [
+          "prenotazione-controller"
+        ],
+        "operationId": "ricercaPrenotazioni",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RicercaPrenotazioneDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PrenotazioneDTORes"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/prenotazione/new-prenotazione": {
+      "post": {
+        "tags": [
+          "prenotazione-controller"
+        ],
+        "operationId": "createPrenotazione",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrenotazioneDTOReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrenotazioneDTORes"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/slotGuard/api/auth/register": {
       "post": {
         "tags": [
@@ -77,27 +562,135 @@
         }
       }
     },
-    "/slotGuard/api/prenotazione/": {
+    "/slotGuard/api/utente/get": {
+      "get": {
+        "tags": [
+          "utente-controller"
+        ],
+        "operationId": "getUtente",
+        "parameters": [
+          {
+            "name": "cf",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UtenteDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/slot/get": {
+      "get": {
+        "tags": [
+          "slot-controller"
+        ],
+        "operationId": "getSlot",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SlotDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/servizi/servizio": {
+      "get": {
+        "tags": [
+          "servizio-controller"
+        ],
+        "operationId": "getServizio",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServizioDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/servizi/servizi": {
+      "get": {
+        "tags": [
+          "servizio-controller"
+        ],
+        "operationId": "getServizi",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServizioDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slotGuard/api/prenotazione/get": {
       "get": {
         "tags": [
           "prenotazione-controller"
         ],
-        "operationId": "crea",
+        "operationId": "getPrenotazione",
         "parameters": [
           {
-            "name": "req",
+            "name": "id",
             "in": "query",
             "required": true,
             "schema": {
-              "$ref": "#/components/schemas/PrenotazioneDTOReq"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string"
+              "type": "integer",
+              "format": "int64"
             }
           }
         ],
@@ -145,6 +738,36 @@
         }
       }
     },
+    "/slotGuard/api/auth/operatore": {
+      "get": {
+        "tags": [
+          "authentication-controller"
+        ],
+        "operationId": "getOperatoreFromToken",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operatore"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/slotGuard/api/auth/check-matricola/{matricola}": {
       "get": {
         "tags": [
@@ -178,6 +801,305 @@
   },
   "components": {
     "schemas": {
+      "UtenteDTO": {
+        "type": "object",
+        "properties": {
+          "codiceFiscale": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "cognome": {
+            "type": "string"
+          },
+          "numeroTelefono": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "SlotDTO": {
+        "type": "object",
+        "properties": {
+          "inizio": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fine": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "prenotati": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ServizioDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "descrizione": {
+            "type": "string"
+          },
+          "costoMedio": {
+            "type": "number"
+          }
+        }
+      },
+      "GrantedAuthority": {
+        "type": "object",
+        "properties": {
+          "authority": {
+            "type": "string"
+          }
+        }
+      },
+      "Operatore": {
+        "type": "object",
+        "properties": {
+          "matricola": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "cognome": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "ruolo": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "OPERATORE"
+            ]
+          },
+          "authorities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GrantedAuthority"
+            }
+          },
+          "username": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "credentialsNonExpired": {
+            "type": "boolean"
+          },
+          "accountNonExpired": {
+            "type": "boolean"
+          },
+          "accountNonLocked": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PrenotazioneDTORes": {
+        "type": "object",
+        "properties": {
+          "dataAppuntamento": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "statoPrenotazione": {
+            "type": "string",
+            "enum": [
+              "BOOKED",
+              "CONFIRMED",
+              "CANCELLED_AUTO",
+              "CANCELLED_USER",
+              "COMPLETED",
+              "NO_SHOW"
+            ]
+          },
+          "semaforoUrgenza": {
+            "type": "string",
+            "enum": [
+              "VERDE",
+              "GIALLO",
+              "ROSSO"
+            ]
+          },
+          "utente": {
+            "$ref": "#/components/schemas/Utente"
+          },
+          "operatore": {
+            "$ref": "#/components/schemas/Operatore"
+          },
+          "servizio": {
+            "$ref": "#/components/schemas/Servizio"
+          }
+        }
+      },
+      "Servizio": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "descrizione": {
+            "type": "string"
+          },
+          "costoMedio": {
+            "type": "number"
+          },
+          "deleted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Utente": {
+        "type": "object",
+        "properties": {
+          "codiceFiscale": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "cognome": {
+            "type": "string"
+          },
+          "numeroTelefono": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdatePrenotazioneDTOReq": {
+        "type": "object",
+        "properties": {
+          "prenotazioneId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "dataAppuntamento": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "statoPrenotazione": {
+            "type": "string",
+            "enum": [
+              "BOOKED",
+              "CONFIRMED",
+              "CANCELLED_AUTO",
+              "CANCELLED_USER",
+              "COMPLETED",
+              "NO_SHOW"
+            ]
+          },
+          "semaforoUrgenza": {
+            "type": "string",
+            "enum": [
+              "VERDE",
+              "GIALLO",
+              "ROSSO"
+            ]
+          },
+          "matricolaOperatore": {
+            "type": "string"
+          },
+          "idServizio": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "RicercaPrenotazioneDTO": {
+        "type": "object",
+        "properties": {
+          "dataInizio": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "dataFine": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "statoPrenotazione": {
+            "type": "string",
+            "enum": [
+              "BOOKED",
+              "CONFIRMED",
+              "CANCELLED_AUTO",
+              "CANCELLED_USER",
+              "COMPLETED",
+              "NO_SHOW"
+            ]
+          },
+          "semaforoUrgenza": {
+            "type": "string",
+            "enum": [
+              "VERDE",
+              "GIALLO",
+              "ROSSO"
+            ]
+          },
+          "cfUtente": {
+            "type": "string"
+          },
+          "matricolaOperatore": {
+            "type": "string"
+          },
+          "idServizio": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "PrenotazioneDTOReq": {
+        "type": "object",
+        "properties": {
+          "dataAppuntamento": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "statoPrenotazione": {
+            "type": "string",
+            "enum": [
+              "BOOKED",
+              "CONFIRMED",
+              "CANCELLED_AUTO",
+              "CANCELLED_USER",
+              "COMPLETED",
+              "NO_SHOW"
+            ]
+          },
+          "semaforoUrgenza": {
+            "type": "string",
+            "enum": [
+              "VERDE",
+              "GIALLO",
+              "ROSSO"
+            ]
+          },
+          "cfUtente": {
+            "type": "string"
+          },
+          "matricolaOperatore": {
+            "type": "string"
+          },
+          "idServizio": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "RegisterRequest": {
         "required": [
           "cognome",
@@ -251,168 +1173,6 @@
             "format": "int64"
           },
           "type": {
-            "type": "string"
-          }
-        }
-      },
-      "PrenotazioneDTOReq": {
-        "type": "object",
-        "properties": {
-          "dataAppuntamento": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "statoPrenotazione": {
-            "type": "string",
-            "enum": [
-              "BOOKED",
-              "CONFIRMED",
-              "CANCELLED_AUTO",
-              "CANCELLED_USER",
-              "COMPLETED",
-              "NO_SHOW"
-            ]
-          },
-          "semaforoUrgenza": {
-            "type": "string",
-            "enum": [
-              "VERDE",
-              "GIALLO",
-              "ROSSO"
-            ]
-          },
-          "cfUtente": {
-            "type": "string"
-          },
-          "matricolaOperatore": {
-            "type": "string"
-          },
-          "servizio": {
-            "$ref": "#/components/schemas/Servizio"
-          }
-        }
-      },
-      "Servizio": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "descrizione": {
-            "type": "string"
-          },
-          "costoMedio": {
-            "type": "number"
-          }
-        }
-      },
-      "GrantedAuthority": {
-        "type": "object",
-        "properties": {
-          "authority": {
-            "type": "string"
-          }
-        }
-      },
-      "Operatore": {
-        "type": "object",
-        "properties": {
-          "matricola": {
-            "type": "string"
-          },
-          "nome": {
-            "type": "string"
-          },
-          "cognome": {
-            "type": "string"
-          },
-          "password": {
-            "type": "string"
-          },
-          "ruolo": {
-            "type": "string",
-            "enum": [
-              "ADMIN",
-              "OPERATORE"
-            ]
-          },
-          "authorities": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/GrantedAuthority"
-            }
-          },
-          "username": {
-            "type": "string"
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "accountNonExpired": {
-            "type": "boolean"
-          },
-          "credentialsNonExpired": {
-            "type": "boolean"
-          },
-          "accountNonLocked": {
-            "type": "boolean"
-          }
-        }
-      },
-      "PrenotazioneDTORes": {
-        "type": "object",
-        "properties": {
-          "dataAppuntamento": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "statoPrenotazione": {
-            "type": "string",
-            "enum": [
-              "BOOKED",
-              "CONFIRMED",
-              "CANCELLED_AUTO",
-              "CANCELLED_USER",
-              "COMPLETED",
-              "NO_SHOW"
-            ]
-          },
-          "semaforoUrgenza": {
-            "type": "string",
-            "enum": [
-              "VERDE",
-              "GIALLO",
-              "ROSSO"
-            ]
-          },
-          "utente": {
-            "$ref": "#/components/schemas/Utente"
-          },
-          "operatore": {
-            "$ref": "#/components/schemas/Operatore"
-          },
-          "servizio": {
-            "$ref": "#/components/schemas/Servizio"
-          }
-        }
-      },
-      "Utente": {
-        "type": "object",
-        "properties": {
-          "codiceFiscale": {
-            "type": "string"
-          },
-          "nome": {
-            "type": "string"
-          },
-          "cognome": {
-            "type": "string"
-          },
-          "numeroTelefono": {
-            "type": "string"
-          },
-          "email": {
             "type": "string"
           }
         }

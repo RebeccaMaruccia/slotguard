@@ -61,4 +61,36 @@ public interface PrenotazioneRepository extends CrudRepository<Prenotazione, Lon
             """)
     List<Prenotazione> findCandidatiRiallocazione(@Param("idServizio") Long idServizio,
                                                   @Param("dataMinima") LocalDateTime dataMinima);
+
+    long countByDataAppuntamentoGreaterThanEqualAndDataAppuntamentoLessThan(LocalDateTime from,
+                                                                            LocalDateTime to);
+
+    long countByDataAppuntamentoGreaterThanEqualAndDataAppuntamentoLessThanAndStatoPrenotazione(LocalDateTime from,
+                                                                                                LocalDateTime to,
+                                                                                                StatoPrenotazione statoPrenotazione);
+
+    long countByDataAppuntamentoGreaterThanEqualAndDataAppuntamentoLessThanAndStatoPrenotazioneIn(LocalDateTime from,
+                                                                                                  LocalDateTime to,
+                                                                                                  List<StatoPrenotazione> statiPrenotazione);
+
+    @Query("""
+            SELECT COALESCE(SUM(p.servizio.costoMedio), 0)
+            FROM Prenotazione p
+            WHERE p.dataAppuntamento >= :from
+              AND p.dataAppuntamento < :to
+            """)
+    java.math.BigDecimal sumCostoByDataAppuntamentoRange(@Param("from") LocalDateTime from,
+                                                         @Param("to") LocalDateTime to);
+
+    @Query("""
+            SELECT COALESCE(SUM(p.servizio.costoMedio), 0)
+            FROM Prenotazione p
+            WHERE p.dataAppuntamento >= :from
+              AND p.dataAppuntamento < :to
+              AND p.statoPrenotazione = :stato
+            """)
+    java.math.BigDecimal sumCostoByDataAppuntamentoRangeAndStato(@Param("from") LocalDateTime from,
+                                                                 @Param("to") LocalDateTime to,
+                                                                 @Param("stato") StatoPrenotazione stato);
+
 }

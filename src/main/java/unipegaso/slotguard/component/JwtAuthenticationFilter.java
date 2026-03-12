@@ -77,7 +77,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
                 if (jwtService.isTokenValid(jwt, userDetails)) {
                     var claims = jwtService.extractAllClaims(jwt);
-                    String role = (String) claims.get("role"); // "USER" o "ADMIN"
+                    String role = (String) claims.get("ruolo"); // "USER" o "ADMIN"
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
@@ -114,3 +114,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 }
+

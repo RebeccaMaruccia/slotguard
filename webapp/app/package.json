@@ -30,6 +30,7 @@
     "@types/react-dom": "^19.2.1",
     "api-service": "file:../api/api-library/",
     "bootstrap": "^5.3.6",
+    "date-fns": "^4.1.0",
     "lib-ts-bl": "file:../shared/lib-ts-bl/",
     "moment": "^2.30.1",
     "react": "^19.2.0",

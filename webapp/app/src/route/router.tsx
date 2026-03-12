@@ -9,7 +9,13 @@ const BasePrivateRouteUser = lazy(
 );
 const LoginPage = lazy(() => import("../page/auth/login/view/login.page.view"));
 const DashboardPersonal = lazy(
-  () => import("../page/dashboard/personal/view/dashboardPersonal.page.view"),
+  () => import("../page/dashboard/dashboard.page.view"),
+);
+const AppointmentsPage = lazy(
+  () => import("../page/appointments/appointments.page.view"),
+);
+const UsersPage = lazy(
+  () => import("../page/users/users.page.view"),
 );
 
 export const router = createBrowserRouter([
@@ -32,6 +38,14 @@ export const router = createBrowserRouter([
             path: EnumRoutes.DASHBOARD,
             element: <DashboardPersonal />,
           },
+          {
+            path:EnumRoutes.APPOINTMENTS,
+            element: <AppointmentsPage/>
+          },
+          {
+            path:EnumRoutes.USERS,
+            element: <UsersPage/>
+          }
         ],
       },
     ],

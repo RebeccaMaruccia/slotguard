@@ -20,14 +20,14 @@ public class SlotService {
     private SlotRepository slotRepository;
 
     @Transactional
-    public void generaSlotProssimeSettimane(long settimane) throws Exception {
+    public void generaSlotProssimeSettimane(long settimane) {
         LocalDate oggi = LocalDate.now();
         LocalDate fine = oggi.plusWeeks(settimane);
         ensureSlots(oggi, fine.minusDays(1)); // include l'ultimo giorno utile
     }
 
     @Transactional
-    public void ensureSlots(LocalDate from, LocalDate to) throws Exception {
+    public void ensureSlots(LocalDate from, LocalDate to) {
         for (LocalDate day = from; !day.isAfter(to); day = day.plusDays(1)) {
 
             DayOfWeek dow = day.getDayOfWeek();
@@ -45,16 +45,27 @@ public class SlotService {
     }
 
     @Transactional(readOnly = true)
-    public List<SlotDTO> getSlots(LocalDate inizio, LocalDate fine) throws Exception {
-        LocalDate end = (fine == null ? LocalDate.now() : fine).plusDays( 1 );
-        return slotRepository.findByInizioBetweenOrderByInizioAsc(inizio, end)
+    public List<SlotDTO> getSlots(LocalDateTime inizio, LocalDateTime fine) {
+        LocalDate startDate = (inizio == null ? LocalDate.now() : inizio.toLocalDate());
+        LocalDate endDate = (fine == null ? LocalDate.now() : fine.toLocalDate()).plusDays(1);
+        return slotRepository.findByInizioBetweenOrderByInizioAsc(startDate.atStartOfDay(), endDate.atStartOfDay())
                 .stream()
                 .map(SlotDTO::toDTO)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public SlotDTO getSlot(Long id) throws Exception {
+    public List<SlotDTO> getSlots(LocalDate inizio, LocalDate fine) {
+        LocalDate startDate = (inizio == null ? LocalDate.now() : inizio);
+        LocalDate endDate = (fine == null ? LocalDate.now() : fine).plusDays(1);
+        return slotRepository.findByInizioBetweenOrderByInizioAsc(startDate.atStartOfDay(), endDate.atStartOfDay())
+                .stream()
+                .map(SlotDTO::toDTO)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public SlotDTO getSlot(Long id) {
         return SlotDTO.toDTO(slotRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new EntityNotFoundException(
                 "Slot non trovato"

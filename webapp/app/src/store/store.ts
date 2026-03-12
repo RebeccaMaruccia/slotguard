@@ -5,22 +5,22 @@ import {rtkQueryErrorLogger} from "./Error/ErrorMiddleware";
 import {environment} from "../shared/environment";
 import {commonReducer} from "lib-ts-bl/dist/reducers/auth";
 import {configurazioniReducer} from "lib-ts-bl/dist";
-import {slotGuardServiceApi} from "api-service";
+import {slotGuardServiceApiBase} from "api-service";
 
 const rootReducer = combineReducers({
   common: commonReducer,
   configuration: configurazioniReducer,
-  [slotGuardServiceApi.reducerPath]: slotGuardServiceApi.reducer,
+  [slotGuardServiceApiBase.reducerPath]: slotGuardServiceApiBase.reducer,
 });
 
 const persistConfig = {
   key: "root",
   storage: storage,
-  [slotGuardServiceApi.reducerPath]: slotGuardServiceApi.reducer,
+  [slotGuardServiceApiBase.reducerPath]: slotGuardServiceApiBase.reducer,
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
-const middleware = [slotGuardServiceApi.middleware];
+const middleware = [slotGuardServiceApiBase.middleware];
 
 export const store: any = configureStore({
   reducer: persistedReducer,

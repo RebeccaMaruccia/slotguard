@@ -1,3 +1,4 @@
+import {format} from "date-fns";
 import moment from "moment";
 
 const useFormatUtilityHook = () => {
@@ -95,23 +96,39 @@ const useFormatUtilityHook = () => {
         return `${year}-${month}-${day}`;
     }
 
-
-    /*function formatToLookUP(lookup: any, label?: boolean) {
-        let result: LookUpOption[] = [];
-        if (lookup) {
-            lookup.map((i: LookUpDto) => {
-                if (i.key) {
-                    result.push({
-                        label: i.value ?? i.key,
-                        id: label ? (i.value ?? i.key) : i.key
-                    })
-                }
-
-            })
+    /**
+     * Formatta il range di orario di uno slot da inizio/fine a "HH:mm - HH:mm"
+     * @param inizio - Data/orario inizio dello slot (ISO string)
+     * @param fine - Data/orario fine dello slot (ISO string)
+     * @returns Stringa formattata "HH:mm - HH:mm"
+     */
+    function formatSlotTime(inizio?: string | null, fine?: string | null): string {
+        if (!inizio || !fine) return '';
+        try {
+            const startTime = format(new Date(inizio), "HH:mm");
+            const endTime = format(new Date(fine), "HH:mm");
+            return `${startTime} - ${endTime}`;
+        } catch (error) {
+            console.error("Errore nel formattare l'orario dello slot:", error);
+            return '';
         }
+    }
 
-        return result;
-    }*/
+    /**
+     * Converte una data ISO (es: "2026-03-12T12:01:00.975Z") a formato LocalDate (yyyy-MM-dd)
+     * @param isoDate - Data in formato ISO con timestamp
+     * @returns Data formattata come yyyy-MM-dd
+     */
+    function formatToLocalDate(isoDate?: string | null): string {
+        if (!isoDate) return '';
+        try {
+            const date = new Date(isoDate);
+            return format(date, "yyyy-MM-dd");
+        } catch (error) {
+            console.error("Errore nel convertire la data ISO:", error);
+            return '';
+        }
+    }
 
     const getEffectiveDate = () => {
         let d = moment();
@@ -120,6 +137,8 @@ const useFormatUtilityHook = () => {
         return formatDateToYYYYMMDD(result.toDate());
     };
 
-    return {formatEuro, formatDateToYYYYMMDD, getEffectiveDate, formatNumber,formatPercentage};
+    // ...existing code...
+
+    return {formatEuro, formatDateToYYYYMMDD, getEffectiveDate, formatNumber, formatPercentage, formatSlotTime, formatToLocalDate};
 }
 export {useFormatUtilityHook}

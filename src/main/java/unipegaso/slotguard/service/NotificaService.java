@@ -1,8 +1,14 @@
 package unipegaso.slotguard.service;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +48,15 @@ public class NotificaService {
     @Autowired
     private SlotRepository slotRepository;
 
+    @Autowired
+    private JavaMailSender mailSender;
+
+    @Value("${app.mail.from:no-reply@slotguard.local}")
+    private String mailFrom;
+
+    @Value("${app.public-base-url:http://localhost:8080/slotGuard}")
+    private String publicBaseUrl;
+
     @Scheduled(cron = "0 0 9 * * *")
     @Transactional
     public void pianificaRichiesteConferma() {
@@ -57,7 +72,7 @@ public class NotificaService {
             if (!notificaRepository.existsByPrenotazioneIdAndTipoNotifica(prenotazione.getId(), TipoNotifica.RICHIESTA_CONFERMA)) {
                 Notifica notifica = creaNotifica(prenotazione, TipoNotifica.RICHIESTA_CONFERMA, LocalDateTime.now().plusHours(24));
                 notificaRepository.save(notifica);
-                inviaEmail(prenotazione, "Richiesta conferma appuntamento", buildLink(notifica.getToken()));
+                inviaEmail(prenotazione, TipoNotifica.RICHIESTA_CONFERMA, notifica.getToken());
             }
         }
     }
@@ -74,7 +89,7 @@ public class NotificaService {
 
             if (notifica.getTipoNotifica() == TipoNotifica.RICHIESTA_CONFERMA) {
                 cancellaPrenotazioneELiberaSlot(notifica.getPrenotazione(), StatoPrenotazione.CANCELLED_AUTO);
-                inviaEmail(notifica.getPrenotazione(), "Prenotazione cancellata da sistema", buildLink(notifica.getToken()));
+                inviaEmail(notifica.getPrenotazione(), TipoNotifica.CANCELLAZIONE, notifica.getToken());
             }
 
             if (notifica.getTipoNotifica() == TipoNotifica.PROPOSTA_RIALLOCAZIONE) {
@@ -146,8 +161,8 @@ public class NotificaService {
         Notifica notificaTentativo = tentativo.getNotifica();
         inviaEmail(
                 notificaTentativo.getPrenotazione(),
-                "Proposta di anticipo appuntamento",
-                buildLink(notificaTentativo.getToken())
+                TipoNotifica.PROPOSTA_RIALLOCAZIONE,
+                notificaTentativo.getToken()
         );
     }
 
@@ -160,12 +175,70 @@ public class NotificaService {
     }
 
 
-    private void inviaEmail(Prenotazione prenotazione, String oggetto, String contenuto) {
-        log.info("EMAIL to={} oggetto={} contenuto={}", prenotazione.getUtente().getEmail(), oggetto, contenuto);
+    private void inviaEmail(Prenotazione prenotazione, TipoNotifica tipoNotifica, String token) {
+        String destinatario = prenotazione.getUtente().getEmail();
+        String oggetto = tipoNotifica.getOggetto();
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+            helper.setFrom(mailFrom);
+            helper.setTo(destinatario);
+            helper.setSubject(oggetto);
+            helper.setText(buildCorpoMailHtml(prenotazione, tipoNotifica, token), true);
+
+            mailSender.send(message);
+            log.info("EMAIL inviata con successo to={} oggetto={}", destinatario, oggetto);
+        } catch (MailException | MessagingException ex) {
+            log.error("Errore invio email to={} oggetto={} errore={}", destinatario, oggetto, ex.getMessage(), ex);
+        }
     }
 
-    private String buildLink(String token) {
-        return "/public/notifiche/rispondi?token=" + token;
+    private String buildCorpoMailHtml(Prenotazione prenotazione, TipoNotifica tipoNotifica, String token) {
+        String nome = prenotazione.getUtente().getNome();
+        String cognome = prenotazione.getUtente().getCognome();
+
+        if (tipoNotifica == TipoNotifica.CANCELLAZIONE) {
+            return """
+                    <html>
+                      <body style=\"font-family:Arial,sans-serif;color:#222;\">
+                        <p>Ciao %s %s,</p>
+                        <p>la tua prenotazione è stata cancellata automaticamente perché il link di conferma è scaduto.</p>
+                        <p style=\"margin-top:24px;font-size:12px;color:#666;\">Se hai bisogno, puoi effettuare una nuova prenotazione.</p>
+                        <p style=\"font-size:12px;color:#666;\">-- SlotGuard</p>
+                      </body>
+                    </html>
+                    """.formatted(nome, cognome);
+        }
+
+        String linkConferma = buildLink(token, true);
+        String linkCancella = buildLink(token, false);
+
+        String intro = tipoNotifica == TipoNotifica.RICHIESTA_CONFERMA
+                ? "desideri confermare il tuo appuntamento? "
+                : "hai ricevuto una proposta di riallocazione della tua prenotazione. Vuoi anticiparla? ";
+        String reminder = "in data " + prenotazione.getDataAppuntamento();
+
+        return """
+                <html>
+                  <body style=\"font-family:Arial,sans-serif;color:#222;\">
+                    <p>Ciao %s %s,</p>
+                    <p>%s</p>
+                    <p>%s</p>
+                    <p>Per favore scegli una delle seguenti azioni:</p>
+                    <p style=\"margin-top:24px;\">
+                      <a href=\"%s\" style=\"background:#16a34a;color:#fff;padding:10px 16px;text-decoration:none;border-radius:6px;display:inline-block;margin-right:12px;\">Accetta</a>
+                      <a href=\"%s\" style=\"background:#dc2626;color:#fff;padding:10px 16px;text-decoration:none;border-radius:6px;display:inline-block;\">Rifiuta</a>
+                    </p>
+                    <p style=\"margin-top:24px;font-size:12px;color:#666;\">Se non hai richiesto questa operazione, ignora il messaggio.</p>
+                    <p style=\"font-size:12px;color:#666;\">-- SlotGuard</p>
+                  </body>
+                </html>
+                """.formatted(nome, cognome, intro, reminder, linkConferma, linkCancella);
+    }
+
+    private String buildLink(String token, boolean accetta) {
+        return publicBaseUrl + "/public/notifica/rispondi?token=" + token + "&accetta=" + accetta;
     }
 
     public static Notifica creaNotifica(Prenotazione prenotazione, TipoNotifica tipo, LocalDateTime scadenza) {
