@@ -31,6 +31,11 @@ public interface PrenotazioneRepository extends CrudRepository<Prenotazione, Lon
 
     Optional<Prenotazione> findPrenotazioneById(Long id);
 
+    boolean existsBySlotIdAndServizioIdAndStatoPrenotazioneIn(
+            Long slotId, Long servizioId, List<StatoPrenotazione> stati);
+
+    List<Prenotazione> findBySlotIdIn(List<Long> slotIds);
+
     @Query("""
             SELECT p FROM Prenotazione p
             WHERE p.dataAppuntamento >= :start

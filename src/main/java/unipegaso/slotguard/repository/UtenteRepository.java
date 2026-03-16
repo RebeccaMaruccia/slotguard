@@ -15,13 +15,13 @@ public interface UtenteRepository extends CrudRepository<Utente, Long> {
     Optional<Utente> getUtenteByCodiceFiscale(String codiceFiscale);
 
     @Query("""
-              SELECT u
-              FROM Utente u
-              WHERE (:#{#dto.codiceFiscale} IS NULL OR u.codiceFiscale ILIKE :#{#dto.codiceFiscale})
-                AND (:#{#dto.cognome} IS NULL OR u.cognome ILIKE :#{#dto.cognome})
-                AND (:#{#dto.nome} IS NULL OR u.nome ILIKE :#{#dto.nome})
-                AND (:#{#dto.email} IS NULL OR u.email ILIKE :#{#dto.email})
-                AND (:#{#dto.numeroTelefono} IS NULL OR u.numeroTelefono = :#{#dto.numeroTelefono})
-            """)
+          SELECT u
+          FROM Utente u
+          WHERE (:#{#dto.codiceFiscale} IS NULL OR TRIM(u.codiceFiscale) ILIKE CONCAT('%', TRIM(:#{#dto.codiceFiscale}), '%'))
+            AND (:#{#dto.cognome} IS NULL OR TRIM(u.cognome) ILIKE CONCAT('%', TRIM(:#{#dto.cognome}), '%'))
+            AND (:#{#dto.nome} IS NULL OR TRIM(u.nome) ILIKE CONCAT('%', TRIM(:#{#dto.nome}), '%'))
+            AND (:#{#dto.email} IS NULL OR TRIM(u.email) ILIKE CONCAT('%', TRIM(:#{#dto.email}), '%'))
+            AND (:#{#dto.numeroTelefono} IS NULL OR u.numeroTelefono = :#{#dto.numeroTelefono})
+        """)
     List<Utente> ricercaUtenti(@Param("dto") UtenteDTO dto);
 }

@@ -9,7 +9,6 @@ import unipegaso.slotguard.model.dto.SlotDTO;
 import unipegaso.slotguard.service.SlotService;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -25,9 +24,7 @@ public class SlotController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inizio,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fine
     ) {
-        LocalDateTime startDateTime = inizio.atStartOfDay();
-        LocalDateTime endDateTime = (fine != null ? fine : LocalDate.now()).atStartOfDay();
-        List<SlotDTO> slots = slotService.getSlots(startDateTime, endDateTime);
+        List<SlotDTO> slots = slotService.getSlots(inizio, fine);
         return ResponseEntity.ok(slots);
     }
 

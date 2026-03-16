@@ -1,23 +1,27 @@
 import {SlotDto, slotGuardServiceApiBase} from "api-service";
 import {useState} from "react";
-import {addDays} from "date-fns";
 import {IWeekDay} from "./useAppointmentCalendar.hook";
 import {IBookingFormData} from "../components/BookingModal";
-import {useFormatUtilityHook} from "../../../shared/formatUtility";
+import {useDispatch} from "react-redux";
+import {useAppSelector} from "../../../store/hook";
+import {selectWeekEnd, selectWeekStart, slotsSet} from "../../../store/Slots";
 
 const useAppointmentsHooks = () => {
-  const { formatToLocalDate } = useFormatUtilityHook();
+  const dispatch = useDispatch();
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<SlotDto | null>(null);
   const [selectedDay, setSelectedDay] = useState<IWeekDay | null>(null);
+  const weekStart = useAppSelector(selectWeekStart);
+  const weekEnd = useAppSelector(selectWeekEnd);
 
   // RTK Query
-  const [getSlots, { isLoading: slotsLoading, data: slotsData }] =
+  const [getSlots, { isLoading: slotsLoading }] =
     slotGuardServiceApiBase.useGetSlotsMutation();
 
   const [createPrenotazione, { isLoading: bookingLoading }] =
-    slotGuardServiceApiBase.useCreatePrenotazioneMutation?.() ?? [null, { isLoading: false }];
+    slotGuardServiceApiBase.useCreatePrenotazioneMutation();
 
+  // Handlers
   const handleSelectSlot = (slot: SlotDto, day: IWeekDay) => {
     setSelectedSlot(slot);
     setSelectedDay(day);
@@ -29,56 +33,42 @@ const useAppointmentsHooks = () => {
     setShowBookingModal(true);
   };
 
-  const handleSubmitBooking = async (formData: IBookingFormData) => {
-    if (!selectedSlot) return;
-
-    try {
-      // Ottieni il token dal localStorage (o da Redux se lo stai conservando lì)
-      const token = localStorage.getItem("authToken") || "";
-
-      const prenotazioneData = {
-        dataAppuntamento: selectedSlot.inizio,
-        statoPrenotazione: "BOOKED" as const,
-        semaforoUrgenza: "VERDE" as const,
-        cfUtente: formData.emailCliente, // Usa email come identificativo
-        matricolaOperatore: undefined,
-        idServizio: undefined, // Potrebbe essere estratto da formData.servizio
-      };
-
-      if (createPrenotazione) {
-        await createPrenotazione({
-          authorization: `Bearer ${token}`,
-          prenotazioneDtoReq: prenotazioneData,
-        });
-      }
-
-      setShowBookingModal(false);
-      setSelectedSlot(null);
-      setSelectedDay(null);
-
-      // Refresh slots
-      const today = new Date();
-      const nextWeek = addDays(today, 7);
-      getSlots({
-        inizio: formatToLocalDate(today.toISOString()),
-        fine: formatToLocalDate(nextWeek.toISOString()),
-      });
-    } catch (error) {
-      console.error("Errore durante la prenotazione:", error);
-      throw error;
-    }
-  };
-
   const handleCloseModal = () => {
     setShowBookingModal(false);
     setSelectedSlot(null);
     setSelectedDay(null);
   };
 
+  // Submit del form
+  const handleSubmitBooking = async (formData: IBookingFormData) => {
+    if (!selectedSlot) return;
+
+    const prenotazioneData = {
+      dataAppuntamento: selectedSlot.inizio,
+      statoPrenotazione: "BOOKED" as const,
+      semaforoUrgenza: "VERDE" as const,
+      cfUtente: formData.emailCliente, // Usa email come identificativo
+      matricolaOperatore: undefined,
+      idServizio: undefined, // Potrebbe essere estratto da formData.servizio
+    };
+
+    await createPrenotazione({
+      prenotazioneDtoReq: prenotazioneData,
+    });
+
+    handleCloseModal();
+
+    // Refresh degli slot su Redux
+    if (weekStart && weekEnd) {
+      const result: any = await getSlots({ inizio: weekStart, fine: weekEnd });
+      if (result?.data) {
+        dispatch(slotsSet(result.data));
+      }
+    }
+  };
+
   return {
-    getSlots,
     slotsLoading,
-    slotsData,
     showBookingModal,
     selectedSlot,
     selectedDay,
@@ -87,7 +77,6 @@ const useAppointmentsHooks = () => {
     handleBookAppointment,
     handleSubmitBooking,
     handleCloseModal,
-    setShowBookingModal,
   };
 };
 

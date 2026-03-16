@@ -26,7 +26,7 @@ interface ISettings {
   action: () => void;
 }
 
-const pages = [EnumRoutes.DASHBOARD, EnumRoutes.APPOINTMENTS, EnumRoutes.USERS];
+const pages = [EnumRoutes.DASHBOARD, EnumRoutes.APPOINTMENTS, EnumRoutes.USERS,EnumRoutes.SERVICES,EnumRoutes.STATISTICS];
 
 const Header: React.FC<React.PropsWithChildren<IProps>> = (
   props: React.PropsWithChildren<IProps>,

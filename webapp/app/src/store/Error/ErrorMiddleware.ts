@@ -15,7 +15,7 @@ export const rtkQueryErrorLogger: Middleware =
             let res = action.payload as errorResponse
             let error: any = res.data;
             console.error(error);
-            toast.error(error?.message ?? "Unknown error occurred.");
+            toast.error(error?.details ?? "Unknown error occurred.");
         }
 
         return next(action)

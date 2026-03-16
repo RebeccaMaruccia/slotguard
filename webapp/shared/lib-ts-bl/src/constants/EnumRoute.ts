@@ -7,5 +7,7 @@ export enum EnumRoutes {
     SETTINGS = '/settings',
     APPOINTMENTS = '/appointments',
     USERS = '/users',
+    SERVICES = '/services',
+    STATISTICS = '/statistics',
     NOT_FOUND = '*'
 }

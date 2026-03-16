@@ -17,6 +17,12 @@ const AppointmentsPage = lazy(
 const UsersPage = lazy(
   () => import("../page/users/users.page.view"),
 );
+const ServicesPage = lazy(
+  () => import("../page/services/services.page.view"),
+);
+const StatisticsPage = lazy(
+  () => import("../page/statistics/statistics.page.view"),
+);
 
 export const router = createBrowserRouter([
   {
@@ -45,6 +51,14 @@ export const router = createBrowserRouter([
           {
             path:EnumRoutes.USERS,
             element: <UsersPage/>
+          },
+          {
+            path:EnumRoutes.SERVICES,
+            element: <ServicesPage/>
+          },
+          {
+            path:EnumRoutes.STATISTICS,
+            element: <StatisticsPage/>
           }
         ],
       },

@@ -23,6 +23,7 @@ public class PrenotazioneDTORes {
     private Utente utente;
     private Operatore operatore;
     private Servizio servizio;
+    private long id;
 
     public static PrenotazioneDTORes toDTO(Prenotazione p) {
         PrenotazioneDTORes dto = new PrenotazioneDTORes();
@@ -32,6 +33,7 @@ public class PrenotazioneDTORes {
         dto.setDataAppuntamento(p.getDataAppuntamento());
         dto.setUtente(p.getUtente());
         dto.setSemaforoUrgenza(p.getSemaforoUrgenza());
+        dto.setId(p.getId());
         return dto;
     }
 }

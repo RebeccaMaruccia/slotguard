@@ -1,22 +1,11 @@
 import React from "react";
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Paper,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import {Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Paper, Stack, Typography,} from "@mui/material";
 import useFormCustomHook from "../../../hooks/form/formCustom.hook";
+import TextInputBase from "../../../components/Base/input/textInput.base.component";
 import {useFormatUtilityHook} from "../../../shared/formatUtility";
 import {IWeekDay} from "../hook/useAppointmentCalendar.hook";
 import {SlotDto} from "api-service";
-import * as yup from "yup";
+import {object, string} from "yup";
 import {format} from "date-fns";
 import {it} from "date-fns/locale";
 
@@ -37,23 +26,21 @@ export interface IBookingFormData {
   note?: string;
 }
 
-const bookingSchema = yup.object().shape({
-  nomeCliente: yup
-    .string()
-    .required("Il nome è obbligatorio")
-    .min(3, "Il nome deve contenere almeno 3 caratteri"),
-  emailCliente: yup
-    .string()
-    .required("L'email è obbligatoria")
-    .email("Inserisci un'email valida"),
-  telefonoCliente: yup
-    .string()
-    .required("Il telefono è obbligatorio")
-    .min(10, "Il numero di telefono deve contenere almeno 10 caratteri"),
-  servizio: yup
-    .string()
-    .required("Il servizio è obbligatorio"),
-  note: yup.string().optional(),
+const bookingSchema = object({
+  form: object<IBookingFormData>({
+    nomeCliente: string()
+      .required("Il nome è obbligatorio")
+      .min(3, "Il nome deve contenere almeno 3 caratteri"),
+    emailCliente: string()
+      .required("L'email è obbligatoria")
+      .email("Inserisci un'email valida"),
+    telefonoCliente: string()
+      .required("Il telefono è obbligatorio")
+      .min(10, "Il numero di telefono deve contenere almeno 10 caratteri"),
+    servizio: string()
+      .required("Il servizio è obbligatorio"),
+    note: string().optional(),
+  }).required(),
 });
 
 const BookingModal: React.FC<IBookingModalProps> = ({
@@ -65,10 +52,10 @@ const BookingModal: React.FC<IBookingModalProps> = ({
   isLoading = false,
 }) => {
   const {
-    register,
-    handleSubmit,
+    control,
     errors,
-    isSubmitting,
+    watch,
+    trigger,
     reset,
   } = useFormCustomHook<IBookingFormData, "form">({
     defaultValue: {
@@ -83,24 +70,25 @@ const BookingModal: React.FC<IBookingModalProps> = ({
     schema: bookingSchema as any,
   });
 
+  const { formatSlotTime } = useFormatUtilityHook();
+  const formData = watch("form");
+
   const handleClose = () => {
     reset();
     onClose();
   };
 
-  const handleFormSubmit = async (data: any) => {
-    try {
-      await onSubmit(data.form);
+  const handleSubmit = async () => {
+    const isValid = await trigger();
+    if (isValid) {
+      await onSubmit(formData);
       reset();
       handleClose();
-    } catch (error) {
-      console.error("Errore nella prenotazione:", error);
     }
   };
 
   if (!slot || !day) return null;
 
-  const { formatSlotTime } = useFormatUtilityHook();
   const slotTime = formatSlotTime(slot.inizio, slot.fine);
   const dayLabel = format(day.date, "EEEE d MMMM yyyy", { locale: it });
 
@@ -140,60 +128,58 @@ const BookingModal: React.FC<IBookingModalProps> = ({
         </Paper>
 
         {/* Form */}
-        <Box component="form" onSubmit={handleSubmit(handleFormSubmit)} noValidate>
+        <Box>
           <Stack spacing={2}>
             {/* Nome Cliente */}
-            <TextField
-              {...register("form.nomeCliente")}
+            <TextInputBase
+              control={control}
+              errors={errors}
+              name="form.nomeCliente"
               label="Nome Cliente"
               placeholder="Inserisci il nome"
               fullWidth
-              required
-              error={!!errors.form?.nomeCliente}
-              helperText={errors.form?.nomeCliente?.message}
               size="small"
             />
 
             {/* Email Cliente */}
-            <TextField
-              {...register("form.emailCliente")}
+            <TextInputBase
+              control={control}
+              errors={errors}
+              name="form.emailCliente"
               label="Email"
               type="email"
               placeholder="nome@example.com"
               fullWidth
-              required
-              error={!!errors.form?.emailCliente}
-              helperText={errors.form?.emailCliente?.message}
               size="small"
             />
 
             {/* Telefono Cliente */}
-            <TextField
-              {...register("form.telefonoCliente")}
+            <TextInputBase
+              control={control}
+              errors={errors}
+              name="form.telefonoCliente"
               label="Telefono"
               placeholder="+39 3XX XXXXXXX"
               fullWidth
-              required
-              error={!!errors.form?.telefonoCliente}
-              helperText={errors.form?.telefonoCliente?.message}
               size="small"
             />
 
             {/* Servizio */}
-            <TextField
-              {...register("form.servizio")}
+            <TextInputBase
+              control={control}
+              errors={errors}
+              name="form.servizio"
               label="Servizio"
               placeholder="Seleziona il servizio"
               fullWidth
-              required
-              error={!!errors.form?.servizio}
-              helperText={errors.form?.servizio?.message}
               size="small"
             />
 
             {/* Note */}
-            <TextField
-              {...register("form.note")}
+            <TextInputBase
+              control={control}
+              errors={errors}
+              name="form.note"
               label="Note"
               placeholder="Eventuali note sulla prenotazione"
               fullWidth
@@ -210,17 +196,13 @@ const BookingModal: React.FC<IBookingModalProps> = ({
           Annulla
         </Button>
         <Button
-          onClick={handleSubmit(handleFormSubmit)}
+          onClick={handleSubmit}
           variant="contained"
           color="primary"
-          disabled={isSubmitting || isLoading}
+          disabled={isLoading}
           sx={{ minWidth: "120px" }}
         >
-          {isSubmitting || isLoading ? (
-            <CircularProgress size={20} sx={{ mr: 1 }} />
-          ) : (
-            "Prenota"
-          )}
+          Prenota
         </Button>
       </DialogActions>
     </Dialog>

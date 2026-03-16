@@ -6,10 +6,12 @@ import {environment} from "../shared/environment";
 import {commonReducer} from "lib-ts-bl/dist/reducers/auth";
 import {configurazioniReducer} from "lib-ts-bl/dist";
 import {slotGuardServiceApiBase} from "api-service";
+import {slotsReducer} from "./Slots";
 
 const rootReducer = combineReducers({
   common: commonReducer,
   configuration: configurazioniReducer,
+  slotsState: slotsReducer,
   [slotGuardServiceApiBase.reducerPath]: slotGuardServiceApiBase.reducer,
 });
 

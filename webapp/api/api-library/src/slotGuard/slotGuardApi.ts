@@ -122,9 +122,6 @@ const injectedRtkApi = api.injectEndpoints({
         url: `/slotGuard/api/prenotazione/update-prenotazione`,
         method: "POST",
         body: queryArg.updatePrenotazioneDtoReq,
-        headers: {
-          Authorization: queryArg.authorization,
-        },
       }),
     }),
     ricercaPrenotazioni: build.mutation<
@@ -145,9 +142,6 @@ const injectedRtkApi = api.injectEndpoints({
         url: `/slotGuard/api/prenotazione/new-prenotazione`,
         method: "POST",
         body: queryArg.prenotazioneDtoReq,
-        headers: {
-          Authorization: queryArg.authorization,
-        },
       }),
     }),
     register: build.mutation<RegisterApiResponse, RegisterApiArg>({
@@ -169,6 +163,24 @@ const injectedRtkApi = api.injectEndpoints({
         url: `/slotGuard/api/utente/get`,
         params: {
           cf: queryArg.cf,
+        },
+      }),
+    }),
+    getRiepilogo: build.query<GetRiepilogoApiResponse, GetRiepilogoApiArg>({
+      query: (queryArg) => ({
+        url: `/slotGuard/api/statistiche/riepilogo`,
+        params: {
+          inizio: queryArg.inizio,
+          fine: queryArg.fine,
+        },
+      }),
+    }),
+    getPieCharts: build.query<GetPieChartsApiResponse, GetPieChartsApiArg>({
+      query: (queryArg) => ({
+        url: `/slotGuard/api/statistiche/grafico-a-torta`,
+        params: {
+          inizio: queryArg.inizio,
+          fine: queryArg.fine,
         },
       }),
     }),
@@ -258,7 +270,7 @@ export type CreateUtenteApiArg = {
 export type GetSlotsApiResponse = /** status 200 OK */ SlotDto[];
 export type GetSlotsApiArg = {
   inizio: string;
-  fine: string;
+  fine?: string;
 };
 export type GeneraSlotsApiResponse = unknown;
 export type GeneraSlotsApiArg = {
@@ -291,7 +303,6 @@ export type UpdateStatoPrenotazioneApiArg = {
 export type ModificaPrenotazioneApiResponse =
   /** status 200 OK */ PrenotazioneDtoRes;
 export type ModificaPrenotazioneApiArg = {
-  authorization: string;
   updatePrenotazioneDtoReq: UpdatePrenotazioneDtoReq;
 };
 export type RicercaPrenotazioniApiResponse =
@@ -302,7 +313,6 @@ export type RicercaPrenotazioniApiArg = {
 export type CreatePrenotazioneApiResponse =
   /** status 200 OK */ PrenotazioneDtoRes;
 export type CreatePrenotazioneApiArg = {
-  authorization: string;
   prenotazioneDtoReq: PrenotazioneDtoReq;
 };
 export type RegisterApiResponse = /** status 200 OK */ RegisterResponse;
@@ -317,6 +327,16 @@ export type AuthenticateApiArg = {
 export type GetUtenteApiResponse = /** status 200 OK */ UtenteDto;
 export type GetUtenteApiArg = {
   cf: string;
+};
+export type GetRiepilogoApiResponse = /** status 200 OK */ KpiSnapshotDto;
+export type GetRiepilogoApiArg = {
+  inizio: string;
+  fine: string;
+};
+export type GetPieChartsApiResponse = /** status 200 OK */ KpiPieChartDto;
+export type GetPieChartsApiArg = {
+  inizio: string;
+  fine: string;
 };
 export type GetSlotApiResponse = /** status 200 OK */ SlotDto;
 export type GetSlotApiArg = {
@@ -353,16 +373,6 @@ export type UtenteDto = {
   numeroTelefono?: string;
   email?: string;
 };
-export type SlotDto = {
-  inizio?: string;
-  fine?: string;
-  prenotati?: number;
-};
-export type ServizioDto = {
-  id?: number;
-  descrizione?: string;
-  costoMedio?: number;
-};
 export type Utente = {
   codiceFiscale?: string;
   nome?: string;
@@ -382,8 +392,8 @@ export type Operatore = {
   authorities?: GrantedAuthority[];
   username?: string;
   enabled?: boolean;
-  credentialsNonExpired?: boolean;
   accountNonExpired?: boolean;
+  credentialsNonExpired?: boolean;
   accountNonLocked?: boolean;
 };
 export type Servizio = {
@@ -405,6 +415,20 @@ export type PrenotazioneDtoRes = {
   utente?: Utente;
   operatore?: Operatore;
   servizio?: Servizio;
+  id?: number;
+};
+export type SlotDto = {
+  id?: number;
+  inizio?: string;
+  fine?: string;
+  capacita?: number;
+  prenotati?: number;
+  appuntamenti?: PrenotazioneDtoRes[];
+};
+export type ServizioDto = {
+  id?: number;
+  descrizione?: string;
+  costoMedio?: number;
 };
 export type UpdatePrenotazioneDtoReq = {
   prenotazioneId?: number;
@@ -472,6 +496,24 @@ export type AuthenticationRequest = {
   matricola: string;
   password: string;
 };
+export type KpiSnapshotDto = {
+  inizio?: string;
+  fine?: string;
+  totAppuntamenti?: number;
+  totNoShow?: number;
+  totCancellazioni?: number;
+  totRiallocazioni?: number;
+  fatturatoPotenziale?: number;
+  fatturatoPerso?: number;
+  tassoNoShow?: number;
+  tassoRiallocazione?: number;
+};
+export type KpiPieChartDto = {
+  noShowEffettivi?: number;
+  noShowEvitatiStimati?: number;
+  riallocazioniAndateABuonFine?: number;
+  riallocazioniNonAndateABuonFine?: number;
+};
 export const {
   useRispondiDaLinkQuery,
   useLazyRispondiDaLinkQuery,
@@ -492,6 +534,10 @@ export const {
   useAuthenticateMutation,
   useGetUtenteQuery,
   useLazyGetUtenteQuery,
+  useGetRiepilogoQuery,
+  useLazyGetRiepilogoQuery,
+  useGetPieChartsQuery,
+  useLazyGetPieChartsQuery,
   useGetSlotQuery,
   useLazyGetSlotQuery,
   useGetServizioQuery,

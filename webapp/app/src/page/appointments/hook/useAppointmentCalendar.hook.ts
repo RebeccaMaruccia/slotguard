@@ -12,6 +12,9 @@ import {
 } from "date-fns";
 import {it} from "date-fns/locale";
 import {SlotDto, slotGuardServiceApiBase} from "api-service";
+import {useDispatch} from "react-redux";
+import {useAppSelector} from "../../../store/hook";
+import {selectSlots, slotsSet, slotsWeekRangeSet} from "../../../store/Slots";
 
 export interface IWeekDay {
   date: Date;
@@ -22,20 +25,27 @@ export interface IWeekDay {
 }
 
 const useAppointmentCalendar = () => {
+  const dispatch = useDispatch();
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(
     startOfWeek(new Date(), { weekStartsOn: 1 })
   );
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  const [getSlots, { isLoading: slotsLoading, data: slotsData, error: slotsError }] =
+  //<editor-fold desc="RTK Calls">
+  const [getSlots, { isLoading: slotsLoading, error: slotsError }] =
     slotGuardServiceApiBase.useGetSlotsMutation();
+  //</editor-fold>
+
+  //<editor-fold desc="Redux selectors">
+  const slotsData = useAppSelector(selectSlots);
+  //</editor-fold>
 
   const weekStart = startOfWeek(currentWeekStart, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
 
   // Estrai gli slot per un giorno specifico
   function getSlotsForDay(date: Date): SlotDto[] {
-    if (!slotsData) return [];
+    if (!slotsData || slotsData.length === 0) return [];
 
     return slotsData.filter((slot: SlotDto) => {
       const slotDate = parseISO(slot.inizio || "");
@@ -55,22 +65,26 @@ const useAppointmentCalendar = () => {
     isToday: isToday(date),
   }));
 
-  // Carica gli slot per la settimana corrente
+  //<editor-fold desc="Caricamento slot e dispatch su Redux">
   const loadWeekSlots = useCallback(() => {
     const inizio = format(weekStart, "yyyy-MM-dd");
     const fine = format(weekEnd, "yyyy-MM-dd");
 
-    getSlots({
-      inizio,
-      fine,
-    });
-  }, [weekStart, weekEnd, getSlots]);
+    dispatch(slotsWeekRangeSet({ weekStart: inizio, weekEnd: fine }));
 
-  // Carica al montaggio e quando cambia la settimana
+    getSlots({ inizio, fine }).then((result: any) => {
+      if (result?.data) {
+        dispatch(slotsSet(result.data));
+      }
+    });
+  }, [weekStart.toISOString(), weekEnd.toISOString()]);
+
   useEffect(() => {
     loadWeekSlots();
-  }, []);
+  }, [loadWeekSlots]);
+  //</editor-fold>
 
+  //<editor-fold desc="Navigazione settimane">
   const goToNextWeek = useCallback(() => {
     setCurrentWeekStart((prev) => addWeeks(prev, 1));
     setSelectedDate(null);
@@ -85,6 +99,7 @@ const useAppointmentCalendar = () => {
     setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
     setSelectedDate(new Date());
   }, []);
+  //</editor-fold>
 
   const weekRangeLabel = `${format(weekStart, "d MMM", {
     locale: it,

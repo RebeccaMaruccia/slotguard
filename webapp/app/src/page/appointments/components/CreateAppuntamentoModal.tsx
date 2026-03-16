@@ -1,237 +1,125 @@
 import React from "react";
 import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Paper,
-  Stack,
-  TextField,
-  Typography,
+    Alert,
+    Box,
+    Button,
+    CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Paper,
+    Stack,
+    Typography,
 } from "@mui/material";
-import useFormCustomHook from "../../../hooks/form/formCustom.hook";
-import {useFormatUtilityHook} from "../../../shared/formatUtility";
-import {SlotDto} from "api-service";
-import * as yup from "yup";
+import TextInputBase from "../../../components/Base/input/textInput.base.component";
+import {PrenotazioneDtoReq, SlotDto} from "api-service";
 import {format} from "date-fns";
 import {it} from "date-fns/locale";
-import {ICreateAppuntamentoFormData} from "../hook/useCreateAppuntamento.hook";
+import {LookUpOption} from "../../../shared/model/interfaces";
 
 interface ICreateAppuntamentoModalProps {
-  open: boolean;
-  slot: SlotDto | null;
-  date: Date | null;
-  onClose: () => void;
-  onSubmit: (data: ICreateAppuntamentoFormData) => Promise<void>;
-  isLoading?: boolean;
-  error?: string | null;
+    open: boolean;
+    slot: SlotDto | null;
+    date: Date | null;
+    slotTime: string;
+    onClose: () => void;
+    onSubmit: () => Promise<void>;
+    isLoading?: boolean;
+    utentiLoading?: boolean;
+    error?: string | null;
+    formHook: {
+        control: any;
+        errors: any;
+        formData: PrenotazioneDtoReq;
+    };
+    utentiOptions: LookUpOption[];
+    onInputSearchUtente: (event: React.SyntheticEvent, value: string, reason: string) => void;
+    serviziOptions: LookUpOption[];
 }
 
-const createAppuntamentoSchema = yup.object().shape({
-  nomeCliente: yup
-    .string()
-    .required("Il nome è obbligatorio")
-    .min(3, "Il nome deve contenere almeno 3 caratteri"),
-  emailCliente: yup
-    .string()
-    .required("L'email è obbligatoria")
-    .email("Inserisci un'email valida"),
-  telefonoCliente: yup
-    .string()
-    .required("Il telefono è obbligatorio")
-    .min(10, "Il numero di telefono deve contenere almeno 10 caratteri"),
-  servizio: yup
-    .string()
-    .required("Il servizio è obbligatorio"),
-  note: yup.string().optional(),
-  dataInizio: yup.string().optional(),
-  dataFine: yup.string().optional(),
-});
-
 const CreateAppuntamentoModal: React.FC<ICreateAppuntamentoModalProps> = ({
-  open,
-  slot,
-  date,
-  onClose,
-  onSubmit,
-  isLoading = false,
-  error = null,
+    open, slot, date, slotTime, onClose, onSubmit,
+    isLoading = false, utentiLoading = false, error = null,
+    formHook, utentiOptions, onInputSearchUtente, serviziOptions,
 }) => {
-  const {
-    register,
-    handleSubmit,
-    errors,
-    isSubmitting,
-    reset,
-  } = useFormCustomHook<ICreateAppuntamentoFormData, "form">({
-    defaultValue: {
-      form: {
-        nomeCliente: "",
-        emailCliente: "",
-        telefonoCliente: "",
-        servizio: "",
-        note: "",
-        dataInizio: slot?.inizio || "",
-        dataFine: slot?.fine || "",
-      },
-    } as any,
-    schema: createAppuntamentoSchema as any,
-  });
+    if (!slot || !date) return null;
 
-  const { formatSlotTime } = useFormatUtilityHook();
+    const {control, errors, formData} = formHook;
+    const dayLabel = format(date, "EEEE d MMMM yyyy", {locale: it});
 
-  const handleClose = () => {
-    reset();
-    onClose();
-  };
+    return (
+        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth sx={{zIndex: 1300}}>
+            <DialogTitle sx={{fontWeight: "bold", fontSize: "1.25rem"}}>
+                Crea Nuovo Appuntamento
+            </DialogTitle>
+            <DialogContent sx={{pt: 2}}>
+                {error && <Alert severity="error" sx={{mb: 2}}>{error}</Alert>}
 
-  const handleFormSubmit = async (data: any) => {
-    try {
-      await onSubmit(data.form);
-      reset();
-      handleClose();
-    } catch (error) {
-      console.error("Errore nella creazione dell'appuntamento:", error);
-    }
-  };
+                {/* Dettagli dello slot */}
+                <Paper sx={{p: 2, mb: 3, backgroundColor: "info.lighter", border: "1px solid", borderColor: "info.main"}}>
+                    <Stack spacing={1}>
+                        <Box>
+                            <Typography variant="caption" color="textSecondary">Data</Typography>
+                            <Typography variant="body2" sx={{textTransform: "capitalize"}}>{dayLabel}</Typography>
+                        </Box>
+                        <Box>
+                            <Typography variant="caption" color="textSecondary">Orario</Typography>
+                            <Typography variant="body2">{slotTime}</Typography>
+                        </Box>
+                    </Stack>
+                </Paper>
 
-  if (!slot || !date) return null;
+                {/* Form */}
+                <Box>
+                    <Stack spacing={2}>
+                        <TextInputBase
+                            control={control}
+                            errors={errors}
+                            name="form.cfUtente"
+                            label="Seleziona Cliente"
+                            type="autocomplete"
+                            value={formData.cfUtente}
+                            options={utentiOptions}
+                            loading={utentiLoading}
+                            onInputChange={onInputSearchUtente}
+                            fullWidth
+                            size="small"
+                        />
 
-  const slotTime = formatSlotTime(slot.inizio, slot.fine);
-  const dayLabel = format(date, "EEEE d MMMM yyyy", { locale: it });
+                        <TextInputBase
+                            control={control}
+                            errors={errors}
+                            name="form.idServizio"
+                            label="Seleziona Servizio"
+                            type="autocomplete"
+                            value={formData.idServizio}
+                            options={serviziOptions}
+                            fullWidth
+                            size="small"
+                        />
+                    </Stack>
+                </Box>
+            </DialogContent>
 
-  return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth sx={{ zIndex: 1300 }}>
-      <DialogTitle sx={{ fontWeight: "bold", fontSize: "1.25rem" }}>
-        Crea Nuovo Appuntamento
-      </DialogTitle>
-
-      <DialogContent sx={{ pt: 2 }}>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-
-        {/* Dettagli dello slot */}
-        <Paper
-          sx={{
-            p: 2,
-            mb: 3,
-            backgroundColor: "info.lighter",
-            border: "1px solid",
-            borderColor: "info.main",
-          }}
-        >
-          <Stack spacing={1}>
-            <Box>
-              <Typography variant="caption" color="textSecondary">
-                Data
-              </Typography>
-              <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
-                {dayLabel}
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" color="textSecondary">
-                Orario
-              </Typography>
-              <Typography variant="body2">{slotTime}</Typography>
-            </Box>
-          </Stack>
-        </Paper>
-
-        {/* Form */}
-        <Box component="form" onSubmit={handleSubmit(handleFormSubmit)} noValidate>
-          <Stack spacing={2}>
-            {/* Nome Cliente */}
-            <TextField
-              {...register("form.nomeCliente")}
-              label="Nome Cliente"
-              placeholder="Inserisci il nome"
-              fullWidth
-              required
-              error={!!errors.form?.nomeCliente}
-              helperText={errors.form?.nomeCliente?.message}
-              size="small"
-            />
-
-            {/* Email Cliente */}
-            <TextField
-              {...register("form.emailCliente")}
-              label="Email"
-              type="email"
-              placeholder="nome@example.com"
-              fullWidth
-              required
-              error={!!errors.form?.emailCliente}
-              helperText={errors.form?.emailCliente?.message}
-              size="small"
-            />
-
-            {/* Telefono Cliente */}
-            <TextField
-              {...register("form.telefonoCliente")}
-              label="Telefono"
-              placeholder="+39 3XX XXXXXXX"
-              fullWidth
-              required
-              error={!!errors.form?.telefonoCliente}
-              helperText={errors.form?.telefonoCliente?.message}
-              size="small"
-            />
-
-            {/* Servizio */}
-            <TextField
-              {...register("form.servizio")}
-              label="Servizio"
-              placeholder="Seleziona il servizio"
-              fullWidth
-              required
-              error={!!errors.form?.servizio}
-              helperText={errors.form?.servizio?.message}
-              size="small"
-            />
-
-            {/* Note */}
-            <TextField
-              {...register("form.note")}
-              label="Note"
-              placeholder="Eventuali note sull'appuntamento"
-              fullWidth
-              multiline
-              rows={3}
-              size="small"
-            />
-          </Stack>
-        </Box>
-      </DialogContent>
-
-      <DialogActions sx={{ p: 2 }}>
-        <Button onClick={handleClose} variant="outlined">
-          Annulla
-        </Button>
-        <Button
-          onClick={handleSubmit(handleFormSubmit)}
-          variant="contained"
-          color="primary"
-          disabled={isSubmitting || isLoading}
-          sx={{ minWidth: "120px" }}
-        >
-          {isSubmitting || isLoading ? (
-            <CircularProgress size={20} sx={{ mr: 1 }} />
-          ) : (
-            "Crea Appuntamento"
-          )}
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
+            <DialogActions sx={{p: 2}}>
+                <Button onClick={onClose} variant="outlined">Annulla</Button>
+                <Button
+                    onClick={() => onSubmit()}
+                    variant="contained"
+                    color="primary"
+                    disabled={isLoading}
+                    sx={{minWidth: "120px"}}
+                >
+                    {isLoading ? (
+                        <><CircularProgress size={20} sx={{mr: 1}}/> Creazione...</>
+                    ) : (
+                        "Crea Appuntamento"
+                    )}
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
 };
 
 export default CreateAppuntamentoModal;
-

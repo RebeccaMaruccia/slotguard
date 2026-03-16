@@ -80,7 +80,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     String role = (String) claims.get("ruolo"); // "USER" o "ADMIN"
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
-                            null,
+                            jwt,
                             List.of(new SimpleGrantedAuthority("ROLE_" + (role != null ? role : "USER")))
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -114,4 +114,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 }
-

@@ -1,39 +1,52 @@
-import React, {useState} from "react";
 import {
     Alert,
+    Box,
     Button,
     Card,
     CardContent,
     CardHeader,
     Chip,
     CircularProgress,
-    Container,
+    Divider,
     Fab,
     Grid,
     IconButton,
     Stack,
+    Tooltip,
     Typography,
 } from "@mui/material";
 import {
     Add as AddIcon,
     ChevronLeft as ChevronLeftIcon,
     ChevronRight as ChevronRightIcon,
+    Circle as CircleIcon,
+    Person as PersonIcon,
     Today as TodayIcon,
 } from "@mui/icons-material";
+import EditIcon from "@mui/icons-material/Edit";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+import DeleteIcon from "@mui/icons-material/Delete";
 import {useFormatUtilityHook} from "../../../shared/formatUtility";
 import useAppointmentCalendar, {IWeekDay} from "../hook/useAppointmentCalendar.hook";
-import {SlotDto} from "api-service";
+import {PrenotazioneDtoRes, SlotDto} from "api-service";
+import React, {useState} from "react";
 
 interface ICalendarWeekViewProps {
   onSelectSlot?: (slot: SlotDto, day: IWeekDay) => void;
   onBookAppointment?: (slot: SlotDto, day: IWeekDay) => void;
   onCreateAppointment?: (slot: SlotDto, date: Date) => void;
+  onEditAppuntamento?: (appuntamento: PrenotazioneDtoRes) => void;
+  onChangeStatus?: (appuntamento: PrenotazioneDtoRes) => void;
+  onDeleteAppuntamento?: (appuntamento: PrenotazioneDtoRes) => void;
 }
 
 const CalendarWeekView: React.FC<ICalendarWeekViewProps> = ({
   onSelectSlot,
   onBookAppointment,
   onCreateAppointment,
+  onEditAppuntamento,
+  onChangeStatus,
+  onDeleteAppuntamento,
 }) => {
   const [showSlotSelector, setShowSlotSelector] = useState(false);
 
@@ -51,7 +64,7 @@ const CalendarWeekView: React.FC<ICalendarWeekViewProps> = ({
 
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Grid  sx={{ py: 0 }}>
       {/* Header con navigazione */}
       <Stack
         direction={{ xs: "column", md: "row" }}
@@ -100,21 +113,24 @@ const CalendarWeekView: React.FC<ICalendarWeekViewProps> = ({
       )}
 
       {/* Giorni della settimana */}
-      <Grid container spacing={2}>
+      <Stack  justifyContent={"center"} spacing={2} direction={{ sm: 'column', md: 'row' }}   sx={{ flexWrap: 'wrap' }}>
         {weekDays.map((day: IWeekDay, index: number) => (
-          <Grid key={index} size={{ xs: 12, sm: 6, md: 3.5, lg: 1.7 }}>
+          <Grid key={index} size={{ xs: 12, sm: 6, md: 6, lg:2}}>
             <DayCard
-              day={day}
+              day={day} 
               isSelected={
                 selectedDate !== null && day.date.toDateString() === selectedDate.toDateString()
               }
               onSelectSlot={onSelectSlot}
               onBookAppointment={onBookAppointment}
               onCreateAppointment={onCreateAppointment}
+              onEditAppuntamento={onEditAppuntamento}
+              onChangeStatus={onChangeStatus}
+              onDeleteAppuntamento={onDeleteAppuntamento}
             />
           </Grid>
         ))}
-      </Grid>
+      </Stack>
 
       {/* FAB per creare nuovo appuntamento */}
       {onCreateAppointment && (
@@ -184,7 +200,9 @@ const CalendarWeekView: React.FC<ICalendarWeekViewProps> = ({
                             variant="outlined"
                             color="primary"
                             onClick={() => {
-                              onCreateAppointment(slot, day.date);
+                                if (onCreateAppointment) {
+                                    onCreateAppointment(slot, day.date);
+                                }
                               setShowSlotSelector(false);
                             }}
                             sx={{ justifyContent: "flex-start" }}
@@ -201,7 +219,7 @@ const CalendarWeekView: React.FC<ICalendarWeekViewProps> = ({
           </Card>
         </div>
       )}
-    </Container>
+    </Grid>
   );
 };
 
@@ -221,6 +239,9 @@ interface IDayCardProps {
   onSelectSlot?: (slot: SlotDto, day: IWeekDay) => void;
   onBookAppointment?: (slot: SlotDto, day: IWeekDay) => void;
   onCreateAppointment?: (slot: SlotDto, date: Date) => void;
+  onEditAppuntamento?: (appuntamento: PrenotazioneDtoRes) => void;
+  onChangeStatus?: (appuntamento: PrenotazioneDtoRes) => void;
+  onDeleteAppuntamento?: (appuntamento: PrenotazioneDtoRes) => void;
 }
 
 const DayCard: React.FC<IDayCardProps> = ({
@@ -229,8 +250,12 @@ const DayCard: React.FC<IDayCardProps> = ({
   onSelectSlot,
   onBookAppointment,
   onCreateAppointment,
+  onEditAppuntamento,
+  onChangeStatus,
+  onDeleteAppuntamento,
 }) => {
   return (
+      <div style={{marginBottom:20}}>
     <Card
       sx={{
         height: "100%",
@@ -289,6 +314,9 @@ const DayCard: React.FC<IDayCardProps> = ({
                 onSelectSlot={onSelectSlot}
                 onBookAppointment={onBookAppointment}
                 onCreateAppointment={onCreateAppointment}
+                onEditAppuntamento={onEditAppuntamento}
+                onChangeStatus={onChangeStatus}
+                onDeleteAppuntamento={onDeleteAppuntamento}
               />
             ))}
           </Stack>
@@ -299,6 +327,7 @@ const DayCard: React.FC<IDayCardProps> = ({
         )}
       </CardContent>
     </Card>
+      </div>
   );
 };
 
@@ -308,6 +337,9 @@ interface ISlotChipProps {
   onSelectSlot?: (slot: SlotDto, day: IWeekDay) => void;
   onBookAppointment?: (slot: SlotDto, day: IWeekDay) => void;
   onCreateAppointment?: (slot: SlotDto, date: Date) => void;
+  onEditAppuntamento?: (appuntamento: PrenotazioneDtoRes) => void;
+  onChangeStatus?: (appuntamento: PrenotazioneDtoRes) => void;
+  onDeleteAppuntamento?: (appuntamento: PrenotazioneDtoRes) => void;
 }
 
 const SlotChip: React.FC<ISlotChipProps> = ({
@@ -316,56 +348,173 @@ const SlotChip: React.FC<ISlotChipProps> = ({
   onSelectSlot,
   onBookAppointment,
   onCreateAppointment,
+  onEditAppuntamento,
+  onChangeStatus,
+  onDeleteAppuntamento,
 }) => {
   const { formatSlotTime } = useFormatUtilityHook();
   const slotTime = formatSlotTime(slot.inizio, slot.fine);
+  const hasAppuntamenti = slot?.appuntamenti && slot.appuntamenti.length > 0;
   const isBooked = slot.prenotati !== undefined && slot.prenotati > 0;
+
+  const semaforoColor = (semaforo?: string) => {
+    switch (semaforo) {
+      case "VERDE": return "success";
+      case "GIALLO": return "warning";
+      case "ROSSO": return "error";
+      default: return "default";
+    }
+  };
+
+  const statoLabel = (stato?: string) => {
+    switch (stato) {
+      case "BOOKED": return "Prenotato";
+      case "CONFIRMED": return "Confermato";
+      case "CANCELLED_AUTO": return "Ann. Auto";
+      case "CANCELLED_USER": return "Ann. Utente";
+      case "COMPLETED": return "Completato";
+      case "NO_SHOW": return "No Show";
+      default: return stato ?? "-";
+    }
+  };
+
+  const statoColor = (stato?: string): "default" | "primary" | "success" | "error" | "warning" | "info" => {
+    switch (stato) {
+      case "BOOKED": return "info";
+      case "CONFIRMED": return "success";
+      case "COMPLETED": return "success";
+      case "CANCELLED_AUTO":
+      case "CANCELLED_USER": return "warning";
+      case "NO_SHOW": return "error";
+      default: return "default";
+    }
+  };
 
   return (
     <Card
       variant="outlined"
       sx={{
         p: 1.5,
-        backgroundColor: !isBooked ? "success.lighter" : "error.lighter",
-        borderColor: !isBooked ? "success.main" : "error.main",
+        backgroundColor: !isBooked ? "success.lighter" : "background.paper",
+        borderColor: !isBooked ? "success.main" : "primary.main",
         borderLeft: "4px solid",
         cursor: "pointer",
         transition: "all 0.2s ease",
         "&:hover": {
           boxShadow: 2,
-          backgroundColor: !isBooked ? "success.light" : "error.light",
         },
       }}
       onClick={() => onSelectSlot?.(slot, day)}
     >
       <Stack spacing={0.5}>
+        {/* Header slot */}
         <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
             {slotTime}
           </Typography>
           <Chip
-            label={!isBooked ? "Disponibile" : "Prenotato"}
-            color={!isBooked ? "success" : "error"}
+            label={`${slot.prenotati ?? 0}/${slot.capacita ?? "-"}`}
+            color={!isBooked ? "success" : "primary"}
             size="small"
+            variant="outlined"
           />
         </Stack>
 
-        {isBooked && onBookAppointment && (
-          <Button
-            variant="contained"
-            color="success"
-            size="small"
-            fullWidth
-            sx={{ mt: 1 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              onBookAppointment(slot, day);
-            }}
-          >
-            Prenota
-          </Button>
+        {/* Lista prenotazioni */}
+        {hasAppuntamenti && (
+          <Box sx={{ mt: 1 }}>
+            <Divider sx={{ mb: 0.5 }} />
+            <Stack spacing={0.5}>
+              {slot.appuntamenti!.map((app: PrenotazioneDtoRes, i: number) => (
+                <Box
+                  key={i}
+                  sx={{
+                    p: 0.75,
+                    borderRadius: 1,
+                    backgroundColor: "action.hover",
+                    border: "1px solid",
+                    borderColor: "divider",
+                  }}
+                >
+                  <Stack direction="row" spacing={0.5} alignItems="center">
+                    <PersonIcon sx={{ fontSize: 14, color: "text.secondary" }} />
+                    <Typography variant="caption" sx={{ fontWeight: "bold", flex: 1 }} noWrap>
+                      {app.utente?.nome ?? ""} {app.utente?.cognome ?? ""}
+                    </Typography>
+                    <Tooltip title={app.semaforoUrgenza ?? ""}>
+                      <CircleIcon
+                        sx={{
+                          fontSize: 10,
+                          color: app.semaforoUrgenza === "VERDE"
+                            ? "success.main"
+                            : app.semaforoUrgenza === "GIALLO"
+                              ? "warning.main"
+                              : app.semaforoUrgenza === "ROSSO"
+                                ? "error.main"
+                                : "grey.400",
+                        }}
+                      />
+                    </Tooltip>
+                  </Stack>
+                  <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.25 }}>
+                    <Chip
+                      label={statoLabel(app.statoPrenotazione)}
+                      color={statoColor(app.statoPrenotazione)}
+                      size="small"
+                      sx={{ height: 18, fontSize: "0.65rem" }}
+                    />
+                    {app.servizio?.descrizione && (
+                      <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: "0.65rem" }}>
+                        {app.servizio.descrizione}
+                      </Typography>
+                    )}
+                  </Stack>
+                  {/* Azioni prenotazione */}
+                  <Stack direction="row" spacing={0} justifyContent="flex-end" sx={{ mt: 0.5 }}>
+                    {onEditAppuntamento && (
+                      <Tooltip title="Modifica">
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={(e) => { e.stopPropagation(); onEditAppuntamento(app); }}
+                          sx={{ p: 0.25 }}
+                        >
+                          <EditIcon sx={{ fontSize: 14 }} />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    {onChangeStatus && (
+                      <Tooltip title="Cambia stato">
+                        <IconButton
+                          size="small"
+                          color="warning"
+                          onClick={(e) => { e.stopPropagation(); onChangeStatus(app); }}
+                          sx={{ p: 0.25 }}
+                        >
+                          <SwapHorizIcon sx={{ fontSize: 14 }} />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    {onDeleteAppuntamento && (
+                      <Tooltip title="Annulla prenotazione">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={(e) => { e.stopPropagation(); onDeleteAppuntamento(app); }}
+                          sx={{ p: 0.25 }}
+                        >
+                          <DeleteIcon sx={{ fontSize: 14 }} />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </Stack>
+                </Box>
+              ))}
+            </Stack>
+          </Box>
         )}
 
+        {/* Azioni */}
         {onCreateAppointment && (
           <Button
             variant="outlined"

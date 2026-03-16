@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import unipegaso.slotguard.configuration.SlotProperties;
 import unipegaso.slotguard.model.*;
 import unipegaso.slotguard.model.dto.PrenotazioneDTOReq;
 import unipegaso.slotguard.model.dto.PrenotazioneDTORes;
@@ -14,7 +15,10 @@ import unipegaso.slotguard.repository.*;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PrenotazioneService {
@@ -37,6 +41,9 @@ public class PrenotazioneService {
     @Autowired
     private SlotService slotService;
 
+    @Autowired
+    private SlotProperties slotProperties;
+
     @Transactional(readOnly = true)
     public List<PrenotazioneDTORes> ricercaPrenotazioni(RicercaPrenotazioneDTO req) throws Exception {
         return prenotazioneRepository.ricercaPrenotazioni(req)
@@ -56,31 +63,37 @@ public class PrenotazioneService {
         Servizio servizio = servizioRepository.findById(req.getIdServizio())
                 .orElseThrow(() -> new EntityNotFoundException("Servizio non trovato: " + req.getIdServizio()));
 
-        // Normalizza all'ora (coerente con slot da 1h)
-        LocalDateTime inizio = req.getDataAppuntamento()
-                .withMinute(0).withSecond(0).withNano(0);
+        // Risolve lo slot corretto: cerca prima slot storici nel DB (config diversa),
+        // poi valida sulla config attuale. Lock pessimistico incluso.
+        SlotAppuntamento slot = resolveAndLockSlot(req.getDataAppuntamento());
+        LocalDateTime inizio = slot.getInizio();
 
-        // Blocca prenotazioni nel weekend
+        // Blocca prenotazioni nel weekend (già gestito in resolveAndLockSlot per nuovi slot,
+        // ma uno slot storico potrebbe essere caduto in un giorno festivo per errore)
         DayOfWeek dow = inizio.toLocalDate().getDayOfWeek();
         if (dow == DayOfWeek.SATURDAY || dow == DayOfWeek.SUNDAY) {
             throw new IllegalArgumentException("Il centro è chiuso nel weekend");
         }
 
-        // Garantisce che lo slot esista (utile se il FE sta andando oltre il mese “precaricato”)
-        slotService.ensureSlots(inizio.toLocalDate(), inizio.toLocalDate());
-
-        // Prendi slot con lock: evita sforamenti oltre capienza
-        SlotAppuntamento slot = slotRepository.findByInizioForUpdate(inizio)
-                .orElseThrow(() -> new EntityNotFoundException("Slot inesistente per: " + inizio));
-
+        // Verifica capienza massima (configurata sullo slot)
         if (slot.getPrenotati() >= slot.getCapacita()) {
-            throw new IllegalStateException("Slot appuntamento pieno");
+            throw new IllegalStateException("Slot pieno: capacità massima di " + slot.getCapacita() + " appuntamenti raggiunta");
+        }
+
+        // Un servizio non può comparire due volte nello stesso slot
+        List<StatoPrenotazione> statiAttivi = List.of(StatoPrenotazione.BOOKED, StatoPrenotazione.CONFIRMED);
+        boolean servizioGiaPresente = prenotazioneRepository
+                .existsBySlotIdAndServizioIdAndStatoPrenotazioneIn(slot.getId(), servizio.getId(), statiAttivi);
+        if (servizioGiaPresente) {
+            throw new IllegalStateException(
+                    "Il servizio '" + servizio.getDescrizione() + "' è già prenotato in questo slot");
         }
 
         slot.setPrenotati(slot.getPrenotati() + 1);
+        slotRepository.save(slot);
 
-        Prenotazione prenotazione = new Prenotazione(req.getDataAppuntamento(), null,
-                req.getSemaforoUrgenza(), utente, operatore, servizio, null, slot);
+        Prenotazione prenotazione = new Prenotazione(inizio, null,
+                req.getSemaforoUrgenza(), utente, operatore, servizio, operatore, slot);
         prenotazioneRepository.save(prenotazione);
         return PrenotazioneDTORes.toDTO(prenotazione);
     }
@@ -119,15 +132,8 @@ public class PrenotazioneService {
         // 1) cambio data -> spostamento slot (solo se occupa)
         if (req.getDataAppuntamento() != null) {
 
-            LocalDateTime nuovaData = req.getDataAppuntamento()
-                    .withMinute(0).withSecond(0).withNano(0);
-
-            if (!nuovaData.equals(prenotazione.getDataAppuntamento())) {
-
-                slotService.ensureSlots(nuovaData.toLocalDate(), nuovaData.toLocalDate());
-
-                SlotAppuntamento newSlot = slotRepository.findByInizioForUpdate(nuovaData)
-                        .orElseThrow(() -> new EntityNotFoundException("Slot nuovo non trovato per: " + nuovaData));
+                SlotAppuntamento newSlot = resolveAndLockSlot(req.getDataAppuntamento());
+                LocalDateTime nuovaData = newSlot.getInizio();
 
                 if (oldOccupato) {
                     if (newSlot.getPrenotati() >= newSlot.getCapacita()) {
@@ -145,7 +151,6 @@ public class PrenotazioneService {
                 prenotazione.setDataAppuntamento(nuovaData);
                 slotRepository.save(currentSlot);
                 currentSlot = newSlot; // aggiorna riferimento (serve per il punto 2)
-            }
         }
 
         // 2) cambio stato -> libera posto se passi da occupante a non-occupante (CANCELLATO/COMPLETATO/NO_SHOW)
@@ -199,6 +204,56 @@ public class PrenotazioneService {
         }
 
         prenotazione.setStatoPrenotazione(nuovoStato);
+    }
+
+    /**
+     * Risolve e blocca lo slot corretto per una prenotazione.
+     *
+     * Strategia:
+     * 1. Cerca nel DB lo slot esistente il cui inizio è <= del timestamp richiesto
+     *    e verifica che il timestamp cada dentro la sua finestra (inizio + durata).
+     *    Questo supporta slot storici creati con una configurazione diversa.
+     * 2. Se non esiste uno slot storico valido, valida l'orario rispetto alla
+     *    configurazione attuale, genera lo slot se mancante e lo blocca.
+     */
+    private SlotAppuntamento resolveAndLockSlot(LocalDateTime requested) {
+        int duration = slotProperties.getDurationMinutes();
+
+        // 1. Cerca slot storico nel DB che contenga il timestamp richiesto
+        Optional<SlotAppuntamento> existing = slotRepository.findSlotContainingForUpdate(requested);
+        if (existing.isPresent()) {
+            SlotAppuntamento candidate = existing.get();
+            LocalDateTime slotFine = candidate.getInizio().plusMinutes(duration);
+            // Il timestamp deve cadere dentro la finestra dello slot
+            if (!requested.isBefore(candidate.getInizio()) && requested.isBefore(slotFine)) {
+                return candidate;
+            }
+        }
+
+        // 2. Nessuno slot storico valido: valida su config attuale e genera
+        LocalTime workStart = slotProperties.getWorkingHours().getStart();
+        LocalTime workEnd   = slotProperties.getWorkingHours().getEnd();
+
+        long minutesFromMidnight = ChronoUnit.MINUTES.between(LocalTime.MIDNIGHT, requested.toLocalTime());
+        long slotMinutes = (minutesFromMidnight / duration) * duration;
+        LocalTime candidateTime = LocalTime.MIDNIGHT.plusMinutes(slotMinutes);
+
+        if (candidateTime.isBefore(workStart) || !candidateTime.isBefore(workEnd)) {
+            throw new IllegalArgumentException(
+                    "Orario non valido: gli slot sono disponibili dalle " + workStart +
+                    " alle " + workEnd + " con durata di " + duration + " minuti");
+        }
+
+        DayOfWeek dow = requested.toLocalDate().getDayOfWeek();
+        if (dow == DayOfWeek.SATURDAY || dow == DayOfWeek.SUNDAY) {
+            throw new IllegalArgumentException("Il centro è chiuso nel weekend");
+        }
+
+        LocalDateTime slotInizio = requested.toLocalDate().atTime(candidateTime);
+        slotService.ensureSlots(slotInizio.toLocalDate(), slotInizio.toLocalDate());
+
+        return slotRepository.findByInizioForUpdate(slotInizio)
+                .orElseThrow(() -> new EntityNotFoundException("Slot non trovato per: " + slotInizio));
     }
 }
 

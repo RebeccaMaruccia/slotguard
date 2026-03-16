@@ -2,6 +2,8 @@ import React from "react";
 import {EnumRoutes} from "lib-ts-bl/dist";
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
+import MiscellaneousServicesOutlinedIcon from '@mui/icons-material/MiscellaneousServicesOutlined';
+import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined';
 import {Sidebar} from "./components/Sidebar";
 import {Logo} from "./components/Logo";
 import {Menu} from "./components/Menu";
@@ -37,6 +39,14 @@ const LeftMenuComponent: React.FC<React.PropsWithChildren<IProps>> = (props: Rea
             icon: <HomeOutlinedIcon/>,
             sottosezioni: [
                 {name: "Dashboard", route: EnumRoutes.DASHBOARD, icon: <DashboardOutlinedIcon/>}
+            ]
+        },
+        {
+            name: "Gestione",
+            icon: <MiscellaneousServicesOutlinedIcon/>,
+            sottosezioni: [
+                {name: "Servizi", route: EnumRoutes.SERVICES, icon: <MiscellaneousServicesOutlinedIcon/>},
+                {name: "Statistiche", route: EnumRoutes.STATISTICS, icon: <BarChartOutlinedIcon/>}
             ]
         },
 
