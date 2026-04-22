@@ -46,7 +46,7 @@ public class RiallocazioneService {
         List<Prenotazione> pAnticipabili = prenotazioneRepository.findCandidatiRiallocazione(
                 prenotazioneCanc.getServizio().getId(), LocalDate.now().plusDays(3).atTime(9,0));
 
-        if (pAnticipabili == null && pAnticipabili.isEmpty()) {
+        if (pAnticipabili == null || pAnticipabili.isEmpty()) {
             throw new IllegalStateException("Nessuna prenotazione risulta anticipabile");
         }
 
